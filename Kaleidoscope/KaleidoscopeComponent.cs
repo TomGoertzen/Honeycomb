@@ -27,6 +27,7 @@ namespace Kaleidoscope
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddNumberParameter("x","x","this is x",GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -34,6 +35,7 @@ namespace Kaleidoscope
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddNumberParameter("out", "o", "the double", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -43,6 +45,12 @@ namespace Kaleidoscope
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            double a = double.NaN;
+            DA.GetData(0, ref a);
+
+            double output = a * 2;
+
+            DA.SetData("out", output);
         }
 
         /// <summary>
