@@ -9,6 +9,9 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <Reference Include="GH_IO">
+      <HintPath>..\..\..\..\..\..\Program Files\Rhino 7\Plug-ins\Grasshopper\GH_IO.dll</HintPath>
+    </Reference>
     <Reference Include="Grasshopper">
       <HintPath>..\..\..\..\..\..\Program Files\Rhino 7\Plug-ins\Grasshopper\Grasshopper.dll</HintPath>
     </Reference>
@@ -22,5 +25,9 @@
     <StartArguments></StartArguments>
     <StartAction>Program</StartAction>
   </PropertyGroup>
+  
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="Copy &quot;$(TargetPath)&quot; &quot;C:\Users\CDB11\AppData\Roaming\Grasshopper\Libraries&quot;" />
+  </Target>
 
 </Project>

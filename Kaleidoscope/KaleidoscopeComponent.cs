@@ -18,7 +18,7 @@ namespace Kaleidoscope
         public KaleidoscopeComponent()
           : base("Kaleidoscope", "Nickname",
             "Description",
-            "Category", "Subcategory")
+            "Kaleidoscope", "To Remove")
         {
         }
 
