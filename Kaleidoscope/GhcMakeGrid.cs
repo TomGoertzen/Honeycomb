@@ -57,11 +57,11 @@ namespace Kaleidoscope
 
             string wallpaperGroup = string.Empty;
             DA.GetData("Wallpaper Group", ref wallpaperGroup);
-            double cellDimension1 = double.NaN;
-            double cellDimension2 = double.NaN;
+            double cellD1 = double.NaN;
+            double cellD2 = double.NaN;
             double cellAngle = double.NaN;
-            DA.GetData("Cell Dimension 1", ref cellDimension1);
-            DA.GetData("Cell Dimension 2", ref cellDimension2);
+            DA.GetData("Cell Dimension 1", ref cellD1);
+            DA.GetData("Cell Dimension 2", ref cellD2);
             DA.GetData("Cell Angle", ref cellAngle);
             Point3d origin = new Point3d(0.0, 0.0, 0.0);
             int cellsX = int.MinValue;
@@ -78,14 +78,11 @@ namespace Kaleidoscope
 
             ///
 
-            Vector3d vecX = new Vector3d(Vector3d.XAxis) * cellDimension1;
-            Vector3d vecY = Vector3d.XAxis * cellDimension2;
-            vecY.Rotate(Math.PI * cellAngle / 180.0, Vector3d.ZAxis);
+            //put this in the groups
+            Vector3d vecX = Vector3d.XAxis;
+            Vector3d vecY = Vector3d.XAxis;
 
-            Point3d midpoint = origin + (vecY / 2) + (vecX / 2);
-
-            //Main Script
-            List<Transform> transformsWPG = GetTransformsFromWPG(wallpaperGroup, midpoint);
+            List<Transform> transformsWPG = GetTransformsFromWPG(wallpaperGroup, origin, cellAngle, cellD1, cellD2, ref vecX, ref vecY);
             GH_Structure<GH_Transform> allTransforms = CalculateAllTransforms(transformsWPG, vecX, vecY, cellsX, cellsY);
 
             ///
@@ -109,14 +106,23 @@ namespace Kaleidoscope
             ///
         }
 
-        private List<Transform> GetTransformsFromWPG(string wallpaperGroup, Point3d midpoint)
+        private List<Transform> GetTransformsFromWPG(string wallpaperGroup, Point3d origin, double cellAngle,
+                                                     double cellD1, double cellD2, ref Vector3d vecX, ref Vector3d vecY)
         {
             List<Transform> baseCellTransform = new List<Transform>();
+            vecX *= cellD1;
             baseCellTransform.Add(Transform.Identity);
-            if (wallpaperGroup == "p1") { }
+            if (wallpaperGroup == "p1")
+            {
+                vecY *= cellD2;
+                vecY.Rotate(cellAngle, Vector3d.ZAxis);
+            }
             else if (wallpaperGroup == "p2")
             {
-                Transform p2Rotation = Transform.Rotation(Math.PI * 180 / 180.0, Vector3d.ZAxis, midpoint);
+                vecY *= cellD2;
+                vecY.Rotate(cellAngle, Vector3d.ZAxis);
+                Point3d midpoint = origin + (vecY / 2) + (vecX / 2);
+                Transform p2Rotation = Transform.Rotation(Math.PI, Vector3d.ZAxis, midpoint);
                 baseCellTransform.Add(p2Rotation);
             }
             else if (wallpaperGroup == "pm") 
@@ -133,22 +139,58 @@ namespace Kaleidoscope
             { }
             else if (wallpaperGroup == "cmm") 
             { }
-            else if (wallpaperGroup == "p4") 
+            else if (wallpaperGroup == "p3")
+            {
+                vecY *= cellD1;
+                vecY.Rotate((2 * Math.PI) / 3, Vector3d.ZAxis);
+                Point3d midpoint = origin + (vecY / 2) + (vecX / 2);
+                Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0/3.0), Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation1);
+                Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0/3.0), Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation2);
+            }
+            else if (wallpaperGroup == "p31m")
             { }
+            else if (wallpaperGroup == "p3m1")
+            { }
+            else if (wallpaperGroup == "p4")
+            {
+                vecY *= cellD1;
+                vecY.Rotate(Math.PI / 2.0, Vector3d.ZAxis);
+                Point3d midpoint = origin + (vecY / 2) + (vecX / 2);
+                Transform p3Rotation1 = Transform.Rotation((1.0 * Math.PI) / 2.0, Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation1);
+                Transform p3Rotation2 = Transform.Rotation((2.0 * Math.PI) / 2.0, Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation2);
+                Transform p3Rotation3 = Transform.Rotation((3.0 * Math.PI) / 2.0, Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation3);
+            }
             else if (wallpaperGroup == "p4m") 
             { }
             else if (wallpaperGroup == "p4g") 
             { }
-            else if (wallpaperGroup == "p3") 
-            { }
-            else if (wallpaperGroup == "p31m") 
-            { }
-            else if (wallpaperGroup == "p3m1") 
-            { }
-            else if (wallpaperGroup == "p6") 
-            { }
+            else if (wallpaperGroup == "p6")
+            {
+                vecY *= cellD1;
+                vecY.Rotate((2 * Math.PI) / 3, Vector3d.ZAxis);
+                Point3d midpoint = origin + (vecY / 2) + (vecX / 2);
+                Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0 / 6.0), Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation1);
+                Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0 / 6.0), Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation2);
+                Transform p3Rotation3 = Transform.Rotation(Math.PI * (6.0 / 6.0), Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation3);
+                Transform p3Rotation4 = Transform.Rotation(Math.PI * (8.0 / 6.0), Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation4);
+                Transform p3Rotation5 = Transform.Rotation(Math.PI * (10.0 / 6.0), Vector3d.ZAxis, midpoint);
+                baseCellTransform.Add(p3Rotation5);
+            }
             else if (wallpaperGroup == "p6m") 
             { }
+            else
+            {
+                //throw error
+            }
             return baseCellTransform;
         }
         private GH_Structure<GH_Transform> CalculateAllTransforms(List<Transform> baseCellTransform, 
