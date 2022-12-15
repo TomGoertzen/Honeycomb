@@ -1,5 +1,6 @@
 ﻿using Grasshopper;
 using Grasshopper.Kernel;
+using Kaleidoscope.Properties;
 using System;
 using System.Drawing;
 
@@ -9,8 +10,8 @@ namespace Kaleidoscope
     {
         public override string Name => "Kaleidoscope";
 
-        //Return a 24x24 pixel bitmap to represent this GHA library.
-        public override Bitmap Icon => null;
+        //Return a 24x24 pixel bitmap to represent this GHA library. 
+        public override Bitmap Icon => Resources.PluginIcon;
 
         //Return a short string describing the purpose of this GHA library.
         public override string Description => "";
