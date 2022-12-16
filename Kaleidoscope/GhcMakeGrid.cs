@@ -5,8 +5,10 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Kaleidoscope.Properties;
+using Rhino;
 using Rhino.Display;
 using Rhino.Geometry;
 
@@ -23,6 +25,7 @@ namespace Kaleidoscope
                  "Initialization")
         {
         }
+        private bool _useDegrees = false;
 
         /// Registers all the input parameters for this component.
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -31,7 +34,7 @@ namespace Kaleidoscope
 
             pManager.AddNumberParameter("Cell Dimension 1", "cD1", "Dimension 1 of the base cell", GH_ParamAccess.item, 10.0);
             pManager.AddNumberParameter("Cell Dimension 2", "cD2", "Dimension 2 of the base cell (when applicable)", GH_ParamAccess.item, 10.0);
-            pManager.AddNumberParameter("Cell Angle", "cA", "Angle of the base cell (when applicable)", GH_ParamAccess.item, 90.0);
+            pManager.AddAngleParameter("Cell Angle", "cA", "Angle of the base cell (when applicable)", GH_ParamAccess.item, 90.0);
 
             pManager.AddPointParameter("Grid Origin", "o", "Position of the grid in rhino-space", GH_ParamAccess.item, new Point3d(0.0, 0.0, 0.0));
             pManager.AddIntegerParameter("X Cell Repetitions", "numX", "Number of cells in the X Direction", GH_ParamAccess.item, 5);
@@ -51,6 +54,14 @@ namespace Kaleidoscope
             pManager.AddCurveParameter("Fundamental Domain", "fd", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }
 
+        protected override void BeforeSolveInstance()
+        {
+            base.BeforeSolveInstance();
+            _useDegrees = false;
+            Param_Number angleParameter = Params.Input[3] as Param_Number;
+            if (angleParameter != null)
+                _useDegrees = angleParameter.UseDegrees;
+        }
         /// This is the method that actually does the work.
         protected override void SolveInstance(IGH_DataAccess DA)
         {
@@ -63,7 +74,8 @@ namespace Kaleidoscope
             double cellAngle = double.NaN;
             DA.GetData("Cell Dimension 1", ref cellD1);
             DA.GetData("Cell Dimension 2", ref cellD2);
-            DA.GetData("Cell Angle", ref cellAngle);
+            if (!DA.GetData("Cell Angle", ref cellAngle)) return;
+            if (_useDegrees) cellAngle = RhinoMath.ToRadians(cellAngle);
             Point3d origin = new Point3d(0.0, 0.0, 0.0);
             int cellsX = int.MinValue;
             int cellsY = int.MinValue;
