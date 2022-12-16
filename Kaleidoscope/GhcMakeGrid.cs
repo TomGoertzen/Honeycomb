@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Grasshopper;
 using Grasshopper.Kernel;
@@ -47,7 +48,7 @@ namespace Kaleidoscope
             pManager.AddTransformParameter("Transform Data", "transf", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
             pManager.AddPointParameter("Grid Points", "grid", "Geometry representing the cells of the grid", GH_ParamAccess.list);
             pManager.AddCurveParameter("Base Cell", "cell", "Geometry representing the cell boundary", GH_ParamAccess.list);
-            pManager.AddCurveParameter("Fundamental Domain", "fd", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.list);
+            pManager.AddCurveParameter("Fundamental Domain", "fd", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }
 
         /// This is the method that actually does the work.
@@ -100,7 +101,8 @@ namespace Kaleidoscope
             }
             if (showFundDomain)
             {
-                DA.SetDataList("Fundamental Domain", null);
+                PolylineCurve fundDomain = SuggestFundamentalDomain(wallpaperGroup, origin, vecX, vecY);
+                DA.SetData("Fundamental Domain", fundDomain);
             }
 
             ///
@@ -139,7 +141,7 @@ namespace Kaleidoscope
                 vecY.Rotate(Math.PI / 2.0, Vector3d.ZAxis);
                 Point3d mirrorPt = origin;
                 Transform pgMirror = Transform.Mirror(new Plane(mirrorPt, Vector3d.ZAxis, vecY));
-                Transform pgTransl = Transform.Translation(-(vecY / 2.0) + vecX);
+                Transform pgTransl = Transform.Translation((vecY / 2.0) + vecX);
                 baseCellTransform.Add(pgTransl * pgMirror);
             }
             else if (wallpaperGroup == "cm")
@@ -149,7 +151,7 @@ namespace Kaleidoscope
                 Point3d mirrorPt = origin + vecY;
                 Transform pgMirrorY = Transform.Mirror(new Plane(mirrorPt, Vector3d.ZAxis, vecY));
                 Transform pgTransl1 = Transform.Translation(vecX);
-                Transform pgTransl2 = Transform.Translation((vecX / 2.0) - (vecY / 2.0));
+                Transform pgTransl2 = Transform.Translation((vecX / 2.0) + (vecY / 2.0));
                 baseCellTransform.Add(pgTransl1 * pgMirrorY);
                 baseCellTransform.Add(pgTransl2 * pgMirrorY);
                 baseCellTransform.Add(pgTransl2);
@@ -184,13 +186,14 @@ namespace Kaleidoscope
                 vecY *= cellD2;
                 vecY.Rotate(Math.PI / 2.0, Vector3d.ZAxis);
                 Point3d mirrorPt = origin + vecY;
-                Transform pgTransl1 = Transform.Translation((vecX / 2.0) - (vecY / 2.0));
-                Transform pgTransl2 = Transform.Translation(-vecY + vecX);
+                Transform transl1 = Transform.Translation((vecX / 2.0) - (3.0 * vecY / 2.0));
+                Transform transl2 = Transform.Translation((vecX / 2.0) + (vecY / 2.0));
+                Transform transl3 = Transform.Translation(-vecY + vecX);
                 Transform pgMirrorY = Transform.Mirror(new Plane(mirrorPt, Vector3d.ZAxis, vecY));
                 Transform pgMirrorX = Transform.Mirror(new Plane(mirrorPt, Vector3d.ZAxis, vecX));
-                baseCellTransform.Add(pgTransl1 * pgMirrorX);
-                baseCellTransform.Add(pgTransl1 * pgMirrorY);
-                baseCellTransform.Add(pgTransl2 * pgMirrorY * pgMirrorX);
+                baseCellTransform.Add(transl1 * pgMirrorX);
+                baseCellTransform.Add(transl2 * pgMirrorY);
+                baseCellTransform.Add(transl3 * pgMirrorY * pgMirrorX);
             }
             else if (wallpaperGroup == "c2mm" || wallpaperGroup == "cmm")
             {
@@ -202,19 +205,20 @@ namespace Kaleidoscope
                 Transform pgTransl1 = Transform.Translation(-vecY);
                 Transform pgTransl2 = Transform.Translation(vecX);
                 Transform pgTransl3 = Transform.Translation((vecX / 2.0) - (vecY / 2.0));
+                Transform pgTransl4 = Transform.Translation(vecY);
                 baseCellTransform.Add(pgTransl1 * pgMirrorX);
                 baseCellTransform.Add(pgTransl2 * pgMirrorY);
                 baseCellTransform.Add(pgTransl1 * pgTransl2 * pgMirrorX * pgMirrorY);
-                baseCellTransform.Add(pgTransl3 * pgMirrorX);
-                baseCellTransform.Add(pgTransl3 * pgMirrorY);
-                baseCellTransform.Add(pgTransl3 * pgMirrorX * pgMirrorY);
-                baseCellTransform.Add(pgTransl3);
+                baseCellTransform.Add(pgTransl3 * pgTransl1 * pgMirrorX);
+                baseCellTransform.Add(pgTransl3 * pgTransl4 * pgMirrorY);
+                baseCellTransform.Add(pgTransl3 * pgTransl1 * pgMirrorX * pgMirrorY);
+                baseCellTransform.Add(pgTransl3 * pgTransl4);
             }
             else if (wallpaperGroup == "p3")
             {
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
-                Point3d rotationCenter = origin + (vecY / 2.0) + (vecX / 2.0);
+                Point3d rotationCenter = (origin + vecY + (vecY + vecX)) / 3.0;
                 Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0/3.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0/3.0), Vector3d.ZAxis, rotationCenter);
                 baseCellTransform.Add(p3Rotation1);
@@ -225,30 +229,30 @@ namespace Kaleidoscope
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
                 Point3d rotationCenter = (origin + vecY + (vecY + vecX)) / 3.0;
-                Transform pgMirrorXY = Transform.Mirror(new Plane(origin, Vector3d.ZAxis, vecX+vecY));
+                Transform pMirrorY = Transform.Mirror(new Plane(rotationCenter, Vector3d.ZAxis, Vector3d.YAxis));
                 Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0 / 3.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0 / 3.0), Vector3d.ZAxis, rotationCenter);
                 baseCellTransform.Add(p3Rotation1);
                 baseCellTransform.Add(p3Rotation2);
-                baseCellTransform.Add(pgMirrorXY);
-                baseCellTransform.Add(pgMirrorXY * p3Rotation1);
-                baseCellTransform.Add(pgMirrorXY * p3Rotation2);
+                baseCellTransform.Add(pMirrorY);
+                baseCellTransform.Add(pMirrorY * p3Rotation1);
+                baseCellTransform.Add(pMirrorY * p3Rotation2);
             }
             else if (wallpaperGroup == "p3m1")
             {
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
                 Point3d rotationCenter = (origin + vecY + (vecY + vecX)) / 3.0;
-                Transform pgMirrorY = Transform.Mirror(new Plane(rotationCenter, Vector3d.ZAxis, Vector3d.YAxis));
+                Transform pgMirrorXY = Transform.Mirror(new Plane(origin, Vector3d.ZAxis, vecX + vecY));
                 Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0 / 3.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0 / 3.0), Vector3d.ZAxis, rotationCenter);
                 Transform pgTranslX = Transform.Translation(vecX);
                 Transform pgTranslY = Transform.Translation(-vecY);
-                baseCellTransform.Add(pgTranslY * p3Rotation1);
-                baseCellTransform.Add(pgTranslX * p3Rotation2);
-                baseCellTransform.Add(pgTranslX * pgMirrorY);
-                baseCellTransform.Add(p3Rotation1 * pgMirrorY);
-                baseCellTransform.Add(pgTranslY * p3Rotation2 * pgMirrorY);
+                baseCellTransform.Add(p3Rotation1);
+                baseCellTransform.Add(p3Rotation2);
+                baseCellTransform.Add(pgMirrorXY);
+                baseCellTransform.Add(pgTranslY * p3Rotation1 * pgMirrorXY);
+                baseCellTransform.Add(pgTranslX * p3Rotation2 * pgMirrorXY);
             }
             else if (wallpaperGroup == "p4")
             {
@@ -262,7 +266,7 @@ namespace Kaleidoscope
                 baseCellTransform.Add(p3Rotation2);
                 baseCellTransform.Add(p3Rotation3);
             }
-            else if (wallpaperGroup == "p4m")
+            else if (wallpaperGroup == "p4mm" || wallpaperGroup == "p4m")
             {
                 vecY *= cellD1;
                 vecY.Rotate(Math.PI / 2.0, Vector3d.ZAxis);
@@ -288,10 +292,10 @@ namespace Kaleidoscope
                 Transform p3Rotation1 = Transform.Rotation((1.0 * Math.PI) / 2.0, Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation2 = Transform.Rotation((2.0 * Math.PI) / 2.0, Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation3 = Transform.Rotation((3.0 * Math.PI) / 2.0, Vector3d.ZAxis, rotationCenter);
-                Transform pgTransl1 = Transform.Translation((vecX / 2.0) - (vecY / 2.0));
-                Transform pgTransl2 = Transform.Translation((vecX / 2.0) + (vecY / 2.0));
-                Transform pgTransl3 = Transform.Translation(-(vecX / 2.0) + (vecY / 2.0));
-                Transform pgTransl4 = Transform.Translation(-(vecX / 2.0) - (vecY / 2.0));
+                Transform pgTransl1 = Transform.Translation(-(vecX / 2.0) - (vecY / 2.0));
+                Transform pgTransl2 = Transform.Translation((vecX / 2.0) - (vecY / 2.0));
+                Transform pgTransl3 = Transform.Translation((vecX / 2.0) + (vecY / 2.0));
+                Transform pgTransl4 = Transform.Translation(-(vecX / 2.0) + (vecY / 2.0));
                 baseCellTransform.Add(p3Rotation1);
                 baseCellTransform.Add(p3Rotation2);
                 baseCellTransform.Add(p3Rotation3);
@@ -304,39 +308,43 @@ namespace Kaleidoscope
             {
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
-                Point3d rotationCenter = origin + (vecY / 2) + (vecX / 2);
+                Point3d rotationCenter = origin;
                 Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0 / 6.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0 / 6.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation3 = Transform.Rotation(Math.PI * (6.0 / 6.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation4 = Transform.Rotation(Math.PI * (8.0 / 6.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation5 = Transform.Rotation(Math.PI * (10.0 / 6.0), Vector3d.ZAxis, rotationCenter);
-                baseCellTransform.Add(p3Rotation1);
-                baseCellTransform.Add(p3Rotation2);
-                baseCellTransform.Add(p3Rotation3);
-                baseCellTransform.Add(p3Rotation4);
+                Transform translX = Transform.Translation(vecX);
+                Transform translY = Transform.Translation(vecY);
+                baseCellTransform.Add(translX * p3Rotation1);
+                baseCellTransform.Add(translX * translY * p3Rotation2);
+                baseCellTransform.Add(translX * translY * p3Rotation3);
+                baseCellTransform.Add(translY * p3Rotation4);
                 baseCellTransform.Add(p3Rotation5);
             }
             else if (wallpaperGroup == "p6mm" || wallpaperGroup == "p6m")
             {
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
-                Point3d rotationCenter = origin + (vecY / 2) + (vecX / 2);
-                Transform pgMirrorX = Transform.Mirror(new Plane(rotationCenter, Vector3d.ZAxis, vecX));
+                Point3d rotationCenter = origin;
+                Transform pgMirrorX = Transform.Mirror(new Plane(rotationCenter, Vector3d.ZAxis, Vector3d.YAxis));
                 Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0 / 6.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0 / 6.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation3 = Transform.Rotation(Math.PI * (6.0 / 6.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation4 = Transform.Rotation(Math.PI * (8.0 / 6.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation5 = Transform.Rotation(Math.PI * (10.0 / 6.0), Vector3d.ZAxis, rotationCenter);
-                baseCellTransform.Add(p3Rotation1);
-                baseCellTransform.Add(p3Rotation2);
-                baseCellTransform.Add(p3Rotation3);
-                baseCellTransform.Add(p3Rotation4);
+                Transform translX = Transform.Translation(vecX);
+                Transform translY = Transform.Translation(vecY);
+                baseCellTransform.Add(translX * p3Rotation1);
+                baseCellTransform.Add(translX * translY * p3Rotation2);
+                baseCellTransform.Add(translX * translY * p3Rotation3);
+                baseCellTransform.Add(translY * p3Rotation4);
                 baseCellTransform.Add(p3Rotation5);
                 baseCellTransform.Add(pgMirrorX);
-                baseCellTransform.Add(p3Rotation1 * pgMirrorX);
-                baseCellTransform.Add(p3Rotation2 * pgMirrorX);
-                baseCellTransform.Add(p3Rotation3 * pgMirrorX);
-                baseCellTransform.Add(p3Rotation4 * pgMirrorX);
+                baseCellTransform.Add(translX * p3Rotation1 * pgMirrorX);
+                baseCellTransform.Add(translX * translY * p3Rotation2 * pgMirrorX);
+                baseCellTransform.Add(translX * translY * p3Rotation3 * pgMirrorX);
+                baseCellTransform.Add(translY * p3Rotation4 * pgMirrorX);
                 baseCellTransform.Add(p3Rotation5 * pgMirrorX);
             }
             else
@@ -395,6 +403,113 @@ namespace Kaleidoscope
                 }
             }
             return gridPoints;
+        }
+
+        private PolylineCurve SuggestFundamentalDomain(string wallpaperGroup, Point3d origin, Vector3d vecX, Vector3d vecY)
+        {
+            List<Point3d> fundDomain = new List<Point3d>();
+            fundDomain.Add(origin);
+            if (wallpaperGroup == "p1")
+            {
+                fundDomain.Add(new Point3d(vecX));
+                fundDomain.Add(new Point3d(vecX + vecY));
+                fundDomain.Add(new Point3d(vecY));
+            }
+            else if (wallpaperGroup == "p2")
+            {
+                fundDomain.Add(new Point3d(vecX + vecY));
+                fundDomain.Add(new Point3d(vecY));
+            }
+            else if (wallpaperGroup == "pm")
+            {
+                fundDomain.Add(new Point3d(vecX  / 2.0));
+                fundDomain.Add(new Point3d(vecY + (vecX / 2.0)));
+                fundDomain.Add(new Point3d(vecY));
+            }
+            else if (wallpaperGroup == "pg")
+            {
+                fundDomain.Add(new Point3d(vecX));
+                fundDomain.Add(new Point3d(vecX + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(vecY / 2.0));
+            }
+            else if (wallpaperGroup == "cm")
+            {
+                fundDomain.Add(new Point3d(vecX / 2.0));
+                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(vecY / 2.0));
+            }
+            else if (wallpaperGroup == "p2mm" || wallpaperGroup == "pmm")
+            {
+                fundDomain.Add(new Point3d(vecX / 2.0));
+                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(vecY / 2.0));
+            }
+            else if (wallpaperGroup == "p2mg" || wallpaperGroup == "pmg")
+            {
+                fundDomain.Add(new Point3d(vecX / 4.0));
+                fundDomain.Add(new Point3d((vecX / 4.0) + vecY));
+                fundDomain.Add(new Point3d(vecY));
+            }
+            else if (wallpaperGroup == "p2gg" || wallpaperGroup == "pgg")
+            {
+                fundDomain.Add(new Point3d(vecX / 2.0));
+                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(vecY / 2.0));
+            }
+            else if (wallpaperGroup == "c2mm" || wallpaperGroup == "cmm")
+            {
+                fundDomain.Add(new Point3d(vecX / 2.0));
+                fundDomain.Add(new Point3d(vecY / 2.0));
+            }
+            else if (wallpaperGroup == "p3")
+            {
+                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d(vecX + vecY));
+                fundDomain.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
+            }
+            else if (wallpaperGroup == "p31m")
+            {
+                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
+            }
+            else if (wallpaperGroup == "p3m1")
+            {
+                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d(vecX + vecY));
+            }
+            else if (wallpaperGroup == "p4")
+            {
+                fundDomain.Add(new Point3d(vecX / 2.0));
+                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(vecY / 2.0));
+            }
+            else if (wallpaperGroup == "p4mm" || wallpaperGroup == "p4m")
+            {
+                fundDomain.Add(new Point3d(vecX / 2.0));
+                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
+            }
+            else if (wallpaperGroup == "p4gm" || wallpaperGroup == "p4g")
+            {
+                fundDomain.Add(new Point3d(vecX / 2.0));
+                fundDomain.Add(new Point3d(vecY / 2.0));
+            }
+            else if (wallpaperGroup == "p6")
+            {
+                fundDomain.Add(new Point3d(vecY / 2.0));
+                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d((vecX + vecY) / 2.0));
+            }
+            else if (wallpaperGroup == "p6mm" || wallpaperGroup == "p6m")
+            {
+                fundDomain.Add(new Point3d(vecY / 2.0));
+                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+            }
+            else
+            {
+                //throw error
+            }
+            fundDomain.Add(origin);
+            return new PolylineCurve(fundDomain);
         }
 
         /// Provides an Icon for the component.

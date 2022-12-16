@@ -16,7 +16,7 @@ namespace Kaleidoscope
         /// Initializes a new instance of the GhcWallpaperArray class.
         public GhcWallpaperArray()
           : base("Wallpaper Array",
-                 "WllpprArry",
+                 "WlprArry",
                  "Use wallpaper group transformation data to array geometry across the grid",
                  "Kaleidoscope",
                  "Initialization")
