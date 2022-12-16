@@ -26,14 +26,14 @@ namespace Kaleidoscope
         /// Registers all the input parameters for this component.
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Input Geometry", "g", "Geometry to tile the grid", GH_ParamAccess.item);
-            pManager.AddTransformParameter("Transformation Data", "t", "Transfromations to apply to geometry", GH_ParamAccess.tree);
+            pManager.AddGeometryParameter("Input Geometry", "G", "Geometry to tile the grid", GH_ParamAccess.item);
+            pManager.AddTransformParameter("Transformation Data", "T", "Transfromations to apply to geometry", GH_ParamAccess.tree);
         }
 
         /// Registers all the output parameters for this component.
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGeometryParameter("Output Geometry", "og", "Resulting transformed geometry", GH_ParamAccess.tree);
+            pManager.AddGeometryParameter("Output Geometry", "G", "Resulting transformed geometry", GH_ParamAccess.tree);
         }
 
         /// This is the method that actually does the work.

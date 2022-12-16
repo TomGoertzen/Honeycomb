@@ -32,26 +32,26 @@ namespace Kaleidoscope
         {
             pManager.AddScriptVariableParameter("Wallpaper Group", "WPG", "One of the 17 wallpaper groups as a string", GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("Cell Dimension 1", "cD1", "Dimension 1 of the base cell", GH_ParamAccess.item, 10.0);
-            pManager.AddNumberParameter("Cell Dimension 2", "cD2", "Dimension 2 of the base cell (when applicable)", GH_ParamAccess.item, 10.0);
-            pManager.AddAngleParameter("Cell Angle", "cA", "Angle of the base cell (when applicable)", GH_ParamAccess.item, 90.0);
+            pManager.AddNumberParameter("Cell Dimension 1", "C1", "Dimension 1 of the base cell", GH_ParamAccess.item, 10.0);
+            pManager.AddNumberParameter("Cell Dimension 2", "C2", "Dimension 2 of the base cell (when applicable)", GH_ParamAccess.item, 10.0);
+            pManager.AddAngleParameter("Cell Angle", "CA", "Angle of the base cell (when applicable)", GH_ParamAccess.item, 90.0);
 
-            pManager.AddPointParameter("Grid Origin", "o", "Position of the grid in rhino-space", GH_ParamAccess.item, new Point3d(0.0, 0.0, 0.0));
-            pManager.AddIntegerParameter("X Cell Repetitions", "numX", "Number of cells in the X Direction", GH_ParamAccess.item, 5);
-            pManager.AddIntegerParameter("Y Cell Repetitions", "numY", "Number of cells in the Y Direction", GH_ParamAccess.item, 5);
+            pManager.AddPointParameter("Grid Origin", "O", "Position of the grid in rhino-space", GH_ParamAccess.item, new Point3d(0.0, 0.0, 0.0));
+            pManager.AddIntegerParameter("X Cell Repetitions", "NumX", "Number of cells in the X Direction", GH_ParamAccess.item, 5);
+            pManager.AddIntegerParameter("Y Cell Repetitions", "NumY", "Number of cells in the Y Direction", GH_ParamAccess.item, 5);
 
-            pManager.AddBooleanParameter("Show Grid Points", "sGrid", "Preview the grid geometry", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("Show Base Cell", "sCell", "Preview the base cell geometry", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("Show Fundamental Domain", "sFD", "Preview the fundamental domain geometry", GH_ParamAccess.item, true);
+            pManager.AddBooleanParameter("Show Grid Points", "ShowGrid", "Preview the grid geometry", GH_ParamAccess.item, true);
+            pManager.AddBooleanParameter("Show Base Cell", "ShowCell", "Preview the base cell geometry", GH_ParamAccess.item, true);
+            pManager.AddBooleanParameter("Show Fundamental Domain", "ShowFD", "Preview the fundamental domain geometry", GH_ParamAccess.item, true);
         }
 
         /// Registers all the output parameters for this component.
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddTransformParameter("Transform Data", "transf", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
-            pManager.AddPointParameter("Grid Points", "grid", "Geometry representing the cells of the grid", GH_ParamAccess.list);
-            pManager.AddCurveParameter("Base Cell", "cell", "Geometry representing the cell boundary", GH_ParamAccess.list);
-            pManager.AddCurveParameter("Fundamental Domain", "fd", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
+            pManager.AddTransformParameter("Transform Data", "T", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
+            pManager.AddPointParameter("Grid Points", "G", "Geometry representing the cells of the grid", GH_ParamAccess.list);
+            pManager.AddCurveParameter("Base Cell", "C", "Geometry representing the cell boundary", GH_ParamAccess.list);
+            pManager.AddCurveParameter("Fundamental Domain", "FD", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }
 
         protected override void BeforeSolveInstance()
@@ -68,23 +68,23 @@ namespace Kaleidoscope
             ///
 
             string wallpaperGroup = string.Empty;
-            DA.GetData("Wallpaper Group", ref wallpaperGroup);
             double cellD1 = double.NaN;
             double cellD2 = double.NaN;
             double cellAngle = double.NaN;
+            Point3d origin = new Point3d(0.0, 0.0, 0.0);
+            int cellsX = int.MinValue;
+            int cellsY = int.MinValue;
+            bool showGrid = true;
+            bool showBaseCell = true;
+            bool showFundDomain = true;
+            DA.GetData("Wallpaper Group", ref wallpaperGroup);
             DA.GetData("Cell Dimension 1", ref cellD1);
             DA.GetData("Cell Dimension 2", ref cellD2);
             if (!DA.GetData("Cell Angle", ref cellAngle)) return;
             if (_useDegrees) cellAngle = RhinoMath.ToRadians(cellAngle);
-            Point3d origin = new Point3d(0.0, 0.0, 0.0);
-            int cellsX = int.MinValue;
-            int cellsY = int.MinValue;
             DA.GetData("Grid Origin", ref origin);
             DA.GetData("X Cell Repetitions", ref cellsX);
             DA.GetData("Y Cell Repetitions", ref cellsY);
-            bool showGrid = true;
-            bool showBaseCell = true;
-            bool showFundDomain = true;
             DA.GetData("Show Grid Points", ref showGrid);
             DA.GetData("Show Base Cell", ref showBaseCell);
             DA.GetData("Show Fundamental Domain", ref showFundDomain);
