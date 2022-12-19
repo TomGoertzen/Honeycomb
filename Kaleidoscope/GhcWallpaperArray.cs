@@ -8,6 +8,7 @@ using Grasshopper.Kernel.Types;
 using Grasshopper.Kernel.Types.Transforms;
 using Kaleidoscope.Properties;
 using Rhino.Geometry;
+using Rhino.Runtime;
 
 namespace Kaleidoscope
 {
@@ -16,10 +17,10 @@ namespace Kaleidoscope
         /// Initializes a new instance of the GhcWallpaperArray class.
         public GhcWallpaperArray()
           : base("Wallpaper Array",
-                 "WlprArry",
+                 "WPArry",
                  "Use wallpaper group transformation data to array geometry across the grid",
                  "Kaleidoscope",
-                 "Initialization")
+                 "Tiling")
         {
         }
 
@@ -41,7 +42,7 @@ namespace Kaleidoscope
         {
             ///
 
-            GeometryBase geometry = null;
+            Object geometry = null;
             DA.GetData(0, ref geometry);
             DA.GetDataTree(1, out GH_Structure<GH_Transform> transformations);
 
@@ -52,7 +53,7 @@ namespace Kaleidoscope
             {
                 for (int j = 0; j < transformations.get_Branch(i).Count; j++)
                 {
-                    GeometryBase newItem = geometry.Duplicate();
+                    GeometryBase newItem = GH_Convert.ToGeometryBase(geometry).Duplicate();
                     int[] path = new int[] { i, j };
                     GH_Transform gh_t = (GH_Transform)transformations.get_Branch(i)[j];
                     newItem.Transform(gh_t.Value);

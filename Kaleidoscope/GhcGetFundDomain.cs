@@ -14,15 +14,15 @@ using Rhino.Geometry;
 
 namespace Kaleidoscope
 {
-    public class GhcMakeGrid : GH_Component
+    public class GhcGetFundDomain : GH_Component
     {
         /// Initializes a new instance of the GhcMakeGrid class.
-        public GhcMakeGrid()
-          : base("MakeGrid",
-                 "MkGrd",
-                 "Use this component to generate transformation data for your tilings",
+        public GhcGetFundDomain()
+          : base("GetFundamentalDomain",
+                 "FundD",
+                 "Use this component to generate transformation data and a gemetrical boundary for your tilings",
                  "Kaleidoscope",
-                 "Initialization")
+                 "Tiling")
         {
         }
         private bool _useDegrees = false;
@@ -34,7 +34,7 @@ namespace Kaleidoscope
 
             pManager.AddNumberParameter("Cell Dimension 1", "C1", "Dimension 1 of the base cell", GH_ParamAccess.item, 10.0);
             pManager.AddNumberParameter("Cell Dimension 2", "C2", "Dimension 2 of the base cell (when applicable)", GH_ParamAccess.item, 10.0);
-            pManager.AddAngleParameter("Cell Angle", "CA", "Angle of the base cell (when applicable)", GH_ParamAccess.item, 90.0);
+            pManager.AddAngleParameter("Cell Angle", "CA", "Angle of the base cell (when applicable)", GH_ParamAccess.item, Math.PI / 2.0);
 
             pManager.AddPointParameter("Grid Origin", "O", "Position of the grid in rhino-space", GH_ParamAccess.item, new Point3d(0.0, 0.0, 0.0));
             pManager.AddIntegerParameter("X Cell Repetitions", "NumX", "Number of cells in the X Direction", GH_ParamAccess.item, 5);
@@ -50,7 +50,7 @@ namespace Kaleidoscope
         {
             pManager.AddTransformParameter("Transform Data", "T", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
             pManager.AddPointParameter("Grid Points", "G", "Geometry representing the cells of the grid", GH_ParamAccess.list);
-            pManager.AddCurveParameter("Base Cell", "C", "Geometry representing the cell boundary", GH_ParamAccess.list);
+            pManager.AddCurveParameter("Base Cell", "BC", "Geometry representing the cell boundary", GH_ParamAccess.item);
             pManager.AddCurveParameter("Fundamental Domain", "FD", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }
 
@@ -103,8 +103,8 @@ namespace Kaleidoscope
             DA.SetDataTree(0, allTransforms);
             if (showBaseCell)
             {
-                List<Curve> cellOutlines = MakeCelloutlines(origin, vecX, vecY);
-                DA.SetDataList("Base Cell", cellOutlines);
+                PolylineCurve cellOutlines = MakeCelloutlines(origin, vecX, vecY);
+                DA.SetData("Base Cell", cellOutlines);
             }
             if (showGrid)
             {
@@ -120,7 +120,7 @@ namespace Kaleidoscope
             ///
         }
 
-        private List<Transform> GetTransformsFromWPG(string wallpaperGroup, Point3d origin, double cellAngle,
+        public static List<Transform> GetTransformsFromWPG(string wallpaperGroup, Point3d origin, double cellAngle,
                                                      double cellD1, double cellD2, ref Vector3d vecX, ref Vector3d vecY)
         {
             List<Transform> baseCellTransform = new List<Transform>();
@@ -136,8 +136,8 @@ namespace Kaleidoscope
                 vecY *= cellD2;
                 vecY.Rotate(cellAngle, Vector3d.ZAxis);
                 Point3d rotationCenter = origin + (vecY / 2) + (vecX / 2);
-                Transform p2Rotation1 = Transform.Rotation(Math.PI, Vector3d.ZAxis, rotationCenter);
-                baseCellTransform.Add(p2Rotation1);
+                Transform rotation1 = Transform.Rotation(Math.PI, Vector3d.ZAxis, rotationCenter);
+                baseCellTransform.Add(rotation1);
             }
             else if (wallpaperGroup == "pm")
             {
@@ -365,7 +365,7 @@ namespace Kaleidoscope
             }
             return baseCellTransform;
         }
-        private GH_Structure<GH_Transform> CalculateAllTransforms(List<Transform> baseCellTransform, 
+        public static GH_Structure<GH_Transform> CalculateAllTransforms(List<Transform> baseCellTransform, 
                                                                   Vector3d vecX, Vector3d vecY, 
                                                                   double cellsX, double cellsY)
         {
@@ -388,21 +388,18 @@ namespace Kaleidoscope
             return translateTransforms;
         }
 
-        private List<Curve> MakeCelloutlines(Point3d origin, Vector3d vecX, Vector3d vecY)
+        public static PolylineCurve MakeCelloutlines(Point3d origin, Vector3d vecX, Vector3d vecY)
         {
-            List<Curve> cellOutlines = new List<Curve>();
-            LineCurve xBottom = new LineCurve(origin, origin + vecX);
-            LineCurve yBottom = new LineCurve(origin, origin + vecY);
-            LineCurve xTop = new LineCurve(origin + vecY, origin + vecX + vecY);
-            LineCurve yTop = new LineCurve(origin + vecX, origin + vecX + vecY);
-            cellOutlines.Add(xBottom);
-            cellOutlines.Add(yBottom);
-            cellOutlines.Add(xTop);
-            cellOutlines.Add(yTop);
-            return cellOutlines;
+            List<Point3d> cellBounds = new List<Point3d>();
+            cellBounds.Add(origin);
+            cellBounds.Add(new Point3d(vecX));
+            cellBounds.Add(new Point3d(vecX + vecY));
+            cellBounds.Add(new Point3d(vecY));
+            cellBounds.Add(origin);
+            return new PolylineCurve(cellBounds);
         }
 
-        private GH_Structure<GH_Point> MakeGridPoints(Vector3d vecX, Vector3d vecY, double cellsX, double cellsY)
+        public static GH_Structure<GH_Point> MakeGridPoints(Vector3d vecX, Vector3d vecY, double cellsX, double cellsY)
         {
             GH_Structure<GH_Point> gridPoints = new GH_Structure<GH_Point>();
             for (int i = 0; i <= cellsX; i++)
@@ -417,7 +414,7 @@ namespace Kaleidoscope
             return gridPoints;
         }
 
-        private PolylineCurve SuggestFundamentalDomain(string wallpaperGroup, Point3d origin, Vector3d vecX, Vector3d vecY)
+        public static PolylineCurve SuggestFundamentalDomain(string wallpaperGroup, Point3d origin, Vector3d vecX, Vector3d vecY)
         {
             List<Point3d> fundDomain = new List<Point3d>();
             fundDomain.Add(origin);
@@ -531,7 +528,7 @@ namespace Kaleidoscope
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return Resources.PluginIcon;
+                return Resources.GetFDIcon;
             }
         }
 

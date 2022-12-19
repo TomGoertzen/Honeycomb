@@ -63,6 +63,26 @@ namespace Kaleidoscope.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap GetFDIcon {
+            get {
+                object obj = ResourceManager.GetObject("GetFDIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap GetFDIconLT {
+            get {
+                object obj = ResourceManager.GetObject("GetFDIconLT", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap PluginIcon {
             get {
                 object obj = ResourceManager.GetObject("PluginIcon", resourceCulture);
