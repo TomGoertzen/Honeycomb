@@ -103,7 +103,7 @@ namespace Kaleidoscope
             DA.SetDataTree(0, allTransforms);
             if (showBaseCell)
             {
-                PolylineCurve cellOutlines = MakeCelloutlines(origin, vecX, vecY);
+                PolylineCurve cellOutlines = MakeCelloutlines(wallpaperGroup, origin, vecX, vecY);
                 DA.SetData("Base Cell", cellOutlines);
             }
             if (showGrid)
@@ -388,11 +388,12 @@ namespace Kaleidoscope
             return translateTransforms;
         }
 
-        public static PolylineCurve MakeCelloutlines(Point3d origin, Vector3d vecX, Vector3d vecY)
+        public static PolylineCurve MakeCelloutlines(string WPG, Point3d origin, Vector3d vecX, Vector3d vecY)
         {
             List<Point3d> cellBounds = new List<Point3d>();
             cellBounds.Add(origin);
-            cellBounds.Add(new Point3d(vecX));
+            if (WPG != "p3" && WPG != "p31m")
+                cellBounds.Add(new Point3d(vecX));
             cellBounds.Add(new Point3d(vecX + vecY));
             cellBounds.Add(new Point3d(vecY));
             cellBounds.Add(origin);

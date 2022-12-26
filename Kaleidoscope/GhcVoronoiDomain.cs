@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using Grasshopper.Kernel;
+﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Geometry;
-using Grasshopper.Kernel.Geometry.SpatialTrees;
 using Grasshopper.Kernel.Geometry.Voronoi;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 namespace Kaleidoscope
 {
@@ -41,8 +38,8 @@ namespace Kaleidoscope
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+            pManager.AddTransformParameter("Transform Data", "T", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
             pManager.AddPointParameter("Eval Point", "P", "The evaluated point", GH_ParamAccess.item);
-            pManager.AddPointParameter("Trans Points", "P", "The evaluated point", GH_ParamAccess.list);
             pManager.AddCurveParameter("Fundamental Domain", "FD", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }
 
@@ -58,12 +55,13 @@ namespace Kaleidoscope
             DA.GetData(2, ref uv);
             DA.GetDataTree(0, out GH_Structure<GH_Transform> transformations);
 
+            //GET ONE CELL Ts
             List<GH_Transform> oneCellTransform = (List<GH_Transform>)transformations.get_Branch(0);
 
+            //CREATE POLYLINE AND SRF
             Boolean isPolyline = inCurve.TryGetPolyline(out Polyline boundary);
             if (!isPolyline)
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Is not a Polyline");
-
             NurbsSurface cellSrf = null;
             if (boundary.Count == 5)
                 cellSrf = NurbsSurface.CreateFromCorners(boundary[0], boundary[1], boundary[2], boundary[3]);
@@ -72,46 +70,40 @@ namespace Kaleidoscope
             else
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Wrong number of Polyline Points");
 
+
+            //GET IMPORTANT STUFF FROM SRF
             cellSrf.SetDomain(0, new Interval(0.0, 1.0));
             cellSrf.SetDomain(1, new Interval(0.0, 1.0));
-
             cellSrf.Evaluate(uv.X, uv.Y, 3, out Point3d evalPt, out Vector3d[] derivatives);
-            
             cellSrf.Evaluate(1.0, 0.0, 3, out Point3d pX, out Vector3d[] d3);
             cellSrf.Evaluate(0.0, 1.0, 3, out Point3d pY, out Vector3d[] d2);
-
             Vector3d vecX = new Vector3d(pX);
             Vector3d vecY = new Vector3d(pY);
 
             DA.SetData("Eval Point", evalPt);
 
-            //repeat in -1, 0, 1 dim x,y
+            //SET BASE TRANSFORM FOR UNIFORMITY
+            Transform t = SetProperTransfrom(evalPt, cellSrf, oneCellTransform);
+            if (!t.TryGetInverse(out Transform invertedT))
+                this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Problem recalculating transforms.");
+            evalPt.Transform(invertedT);
 
-            int indexOfEvalPt = int.MinValue;
-            List<Point3d> pointTransform = new List<Point3d>();
-            List<GH_Point> pt4Vor = new List<GH_Point>();
-            Node2List nodes = new Node2List();
-            for (int i = -1; i <= 1; i ++)
-            {
-                Transform transl1 = Transform.Translation((vecX * i));
-                for (int j = -1; j <= 1; j ++)
-                {
-                    Transform transl2 = Transform.Translation(vecY * j);
-                    for (int k = 0; k < oneCellTransform.Count; k++)
-                    {
-                        Transform transExist = oneCellTransform[k].Value;
-                        Point3d transPoint = new Point3d(evalPt);
-                        transPoint.Transform(transl1 * transl2 * transExist);
-                        if (transPoint.Equals(evalPt)) indexOfEvalPt = pointTransform.Count;
-                        pointTransform.Add(transPoint);
-                        pt4Vor.Add(new GH_Point(transPoint));
-                        nodes.Append(new Node2((double)transPoint.X, (double)transPoint.Y));
-                    }
-                }
-            }
 
-            DA.SetDataList(1, pointTransform);
+            //ARRAY POINTS
+            List<Point3d> pointArray = ArrayPoints(oneCellTransform, evalPt, vecX, vecY, out int indexOfBaseCell);
 
+            //VORONOI DOMAIN
+            PolylineCurve polylineCurve = GetVoronoiDomain(pointArray, t, indexOfBaseCell);
+            DA.SetData("Fundamental Domain", polylineCurve);
+
+            //NEW TRANSFORMS
+            GH_Structure<GH_Transform> allNewTransforms = RecalculateTransforms(transformations, invertedT);
+            DA.SetDataTree(0, allNewTransforms);
+        }
+
+        protected PolylineCurve GetVoronoiDomain(List<Point3d> pointArray, Transform t, int i)
+        {
+            Node2List nodes = new Node2List(pointArray);
             double x0 = double.NaN;
             double x1 = double.NaN;
             double y0 = double.NaN;
@@ -125,11 +117,88 @@ namespace Kaleidoscope
 
             List<Cell2> cell2List;
             cell2List = Grasshopper.Kernel.Geometry.Voronoi.Solver.Solve_BruteForce(nodes, (IEnumerable<Node2>)node2List.InternalList);
-
-            Polyline polyline = cell2List[indexOfEvalPt].ToPolyline();
+            Polyline polyline = cell2List[i].ToPolyline();
             PolylineCurve polylineCurve = new PolylineCurve((IEnumerable<Point3d>)polyline);
-                
-            DA.SetData("Fundamental Domain", polylineCurve);
+            polylineCurve.Transform(t);
+            return polylineCurve;
+        }
+
+        protected GH_Structure<GH_Transform> RecalculateTransforms(GH_Structure<GH_Transform> transforms, Transform tToAdd)
+        {
+            GH_Structure<GH_Transform> newTransforms = new GH_Structure<GH_Transform>();
+            int treeIndex = 0;
+            for (int i = 0; i < transforms.Branches.Count; i++)
+            {
+                GH_Structure<GH_Transform> newBranchTransform = new GH_Structure<GH_Transform>();
+                List<GH_Transform> branch = (List<GH_Transform>)transforms.get_Branch(i);
+                for (int j = 0; j < branch.Count; j++)
+                {
+                    Transform t = branch[j].Value;
+                    newBranchTransform.Append(new GH_Transform(t * tToAdd));
+                }
+                newTransforms.AppendRange(newBranchTransform, new GH_Path(treeIndex));
+                treeIndex++;
+            }
+            return newTransforms;
+        }
+
+        protected List<Point3d> ArrayPoints(List<GH_Transform> transforms, Point3d basePt, Vector3d vecX, Vector3d vecY, out int index)
+        {
+            List<Point3d> ArrayPoints = new List<Point3d>();
+            index = 0;
+            for (int i = -1; i <= 1; i++)
+            {
+                Transform transl1 = Transform.Translation((vecX * i));
+                for (int j = -1; j <= 1; j++)
+                {
+                    Transform transl2 = Transform.Translation(vecY * j);
+                    for (int k = 0; k < transforms.Count; k++)
+                    {
+                        Transform transExist = transforms[k].Value;
+                        Point3d transPoint = new Point3d(basePt);
+                        transPoint.Transform(transl1 * transl2 * transExist);
+                        if (transPoint.Equals(basePt)) index = ArrayPoints.Count;
+                        ArrayPoints.Add(transPoint);
+                    }
+                }
+            }
+            return ArrayPoints;
+        }
+        protected Transform SetProperTransfrom(Point3d evalPt, Surface baseSrf, List<GH_Transform> transforms)
+        {
+            for (int i = 0; i < transforms.Count; i++)
+            {
+                Transform curT = transforms[i].Value;
+                if (!curT.TryGetInverse(out Transform invertedT))
+                    this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Problem recalculating transforms.");
+                Point3d invertedPt = new Point3d(evalPt);
+                invertedPt.Transform(invertedT);
+
+                Boolean pointsContained = true;
+                for (int j = transforms.Count - 1; j >= 0; j--)
+                {
+                    Point3d testPt = new Point3d(invertedPt);
+                    testPt.Transform(transforms[j].Value);
+
+                    baseSrf.ClosestPoint(testPt, out double u, out double v);
+                    Point3d srfPt = baseSrf.PointAt(u, v);
+
+                    //if (0.0 > u || u > 1.0 || 0.0 > v || v > 1.0)
+                    if (testPt.DistanceTo(srfPt) > 0.1)
+                    {
+                        pointsContained = false;
+                        this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, j.ToString());
+                        //break;
+                    }
+                }
+                if (pointsContained)
+                {
+                    this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Found contained points");
+                    return curT;
+                }
+            }
+            this.AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "No proper inverted transform.");
+            return Transform.Unset;
         }
 
         /// <summary>

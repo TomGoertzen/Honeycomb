@@ -66,7 +66,7 @@ namespace Kaleidoscope
             GH_Structure<GH_Transform> allTransforms = GhcGetFundDomain.CalculateAllTransforms(transformsWPG, vecX, vecY, cellsX, cellsY);
 
             DA.SetDataTree(0, allTransforms);
-            PolylineCurve cellOutlines = GhcGetFundDomain.MakeCelloutlines(origin, vecX, vecY);
+            PolylineCurve cellOutlines = GhcGetFundDomain.MakeCelloutlines(wallpaperGroup, origin, vecX, vecY);
             DA.SetData("Base Cell", cellOutlines);
             PolylineCurve fundDomain = GhcGetFundDomain.SuggestFundamentalDomain(wallpaperGroup, origin, vecX, vecY);
             DA.SetData("Fundamental Domain", fundDomain);
