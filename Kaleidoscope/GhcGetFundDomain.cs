@@ -39,10 +39,6 @@ namespace Kaleidoscope
             pManager.AddPointParameter("Grid Origin", "O", "Position of the grid in rhino-space", GH_ParamAccess.item, new Point3d(0.0, 0.0, 0.0));
             pManager.AddIntegerParameter("X Cell Repetitions", "NumX", "Number of cells in the X Direction", GH_ParamAccess.item, 5);
             pManager.AddIntegerParameter("Y Cell Repetitions", "NumY", "Number of cells in the Y Direction", GH_ParamAccess.item, 5);
-
-            pManager.AddBooleanParameter("Show Grid Points", "ShowGrid", "Preview the grid geometry", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("Show Base Cell", "ShowCell", "Preview the base cell geometry", GH_ParamAccess.item, true);
-            pManager.AddBooleanParameter("Show Fundamental Domain", "ShowFD", "Preview the fundamental domain geometry", GH_ParamAccess.item, true);
         }
 
         /// Registers all the output parameters for this component.
@@ -74,9 +70,6 @@ namespace Kaleidoscope
             Point3d origin = new Point3d(0.0, 0.0, 0.0);
             int cellsX = int.MinValue;
             int cellsY = int.MinValue;
-            bool showGrid = true;
-            bool showBaseCell = true;
-            bool showFundDomain = true;
             DA.GetData("Wallpaper Group", ref wallpaperGroup);
             DA.GetData("Cell Dimension 1", ref cellD1);
             DA.GetData("Cell Dimension 2", ref cellD2);
@@ -85,9 +78,6 @@ namespace Kaleidoscope
             DA.GetData("Grid Origin", ref origin);
             DA.GetData("X Cell Repetitions", ref cellsX);
             DA.GetData("Y Cell Repetitions", ref cellsY);
-            DA.GetData("Show Grid Points", ref showGrid);
-            DA.GetData("Show Base Cell", ref showBaseCell);
-            DA.GetData("Show Fundamental Domain", ref showFundDomain);
 
             ///
 
@@ -101,21 +91,12 @@ namespace Kaleidoscope
             ///
 
             DA.SetDataTree(0, allTransforms);
-            if (showBaseCell)
-            {
-                PolylineCurve cellOutlines = MakeCelloutlines(wallpaperGroup, origin, vecX, vecY);
-                DA.SetData("Base Cell", cellOutlines);
-            }
-            if (showGrid)
-            {
-                GH_Structure<GH_Point> gridPoints = MakeGridPoints(vecX, vecY, cellsX, cellsY);
-                DA.SetDataList("Grid Points", gridPoints);
-            }
-            if (showFundDomain)
-            {
-                PolylineCurve fundDomain = SuggestFundamentalDomain(wallpaperGroup, origin, vecX, vecY);
-                DA.SetData("Fundamental Domain", fundDomain);
-            }
+            PolylineCurve cellOutlines = MakeCelloutlines(wallpaperGroup, origin, vecX, vecY);
+            //GH_Structure<GH_Point> gridPoints = MakeGridPoints(vecX, vecY, cellsX, cellsY);
+            PolylineCurve fundDomain = SuggestFundamentalDomain(wallpaperGroup, origin, vecX, vecY, out List<Point3d> gridPoints);
+            DA.SetData("Base Cell", cellOutlines);
+            DA.SetDataList("Grid Points", gridPoints);
+            DA.SetData("Fundamental Domain", fundDomain);
 
             ///
         }
@@ -415,110 +396,187 @@ namespace Kaleidoscope
             return gridPoints;
         }
 
-        public static PolylineCurve SuggestFundamentalDomain(string wallpaperGroup, Point3d origin, Vector3d vecX, Vector3d vecY)
+        public static PolylineCurve SuggestFundamentalDomain(string wallpaperGroup, Point3d origin, Vector3d vecX, Vector3d vecY, out List<Point3d> gridPointsOut)
         {
             List<Point3d> fundDomain = new List<Point3d>();
             fundDomain.Add(origin);
+
+            List<Point3d> gridPoints = new List<Point3d>();
+            gridPoints.Add(origin);
+            gridPoints.Add(new Point3d(vecX));
+            gridPoints.Add(new Point3d(vecY));
+            gridPoints.Add(new Point3d(vecX + vecY));
+
             if (wallpaperGroup == "p1")
             {
                 fundDomain.Add(new Point3d(vecX));
                 fundDomain.Add(new Point3d(vecX + vecY));
                 fundDomain.Add(new Point3d(vecY));
+
+                gridPoints.Clear();
             }
             else if (wallpaperGroup == "p2")
             {
                 fundDomain.Add(new Point3d(vecX + vecY));
                 fundDomain.Add(new Point3d(vecY));
+
+                gridPoints.Add(new Point3d(vecX / 2.0));
+                gridPoints.Add(new Point3d(vecY / 2.0));
+                gridPoints.Add(new Point3d(vecX + (vecY / 2.0)));
+                gridPoints.Add(new Point3d((vecX / 2.0) + vecY));
+                gridPoints.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
             }
             else if (wallpaperGroup == "pm")
             {
                 fundDomain.Add(new Point3d(vecX  / 2.0));
                 fundDomain.Add(new Point3d(vecY + (vecX / 2.0)));
                 fundDomain.Add(new Point3d(vecY));
+
+                gridPoints.Clear();
             }
             else if (wallpaperGroup == "pg")
             {
                 fundDomain.Add(new Point3d(vecX));
                 fundDomain.Add(new Point3d(vecX + (vecY / 2.0)));
                 fundDomain.Add(new Point3d(vecY / 2.0));
+
+                gridPoints.Clear();
             }
             else if (wallpaperGroup == "cm")
             {
                 fundDomain.Add(new Point3d(vecX / 2.0));
                 fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
                 fundDomain.Add(new Point3d(vecY / 2.0));
+
+                gridPoints.Clear();
             }
             else if (wallpaperGroup == "p2mm" || wallpaperGroup == "pmm")
             {
                 fundDomain.Add(new Point3d(vecX / 2.0));
                 fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
                 fundDomain.Add(new Point3d(vecY / 2.0));
+
+                gridPoints.Clear();
             }
             else if (wallpaperGroup == "p2mg" || wallpaperGroup == "pmg")
             {
                 fundDomain.Add(new Point3d(vecX / 4.0));
                 fundDomain.Add(new Point3d((vecX / 4.0) + vecY));
                 fundDomain.Add(new Point3d(vecY));
+
+                gridPoints.Add(new Point3d(vecX / 2.0));
+                gridPoints.Add(new Point3d(vecY / 2.0));
+                gridPoints.Add(new Point3d(vecX / 2.0) + vecY);
+                gridPoints.Add(new Point3d(vecY / 2.0) + vecX);
+                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
             }
             else if (wallpaperGroup == "p2gg" || wallpaperGroup == "pgg")
             {
                 fundDomain.Add(new Point3d(vecX / 2.0));
                 fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
                 fundDomain.Add(new Point3d(vecY / 2.0));
+
+                gridPoints.Add(new Point3d(vecX / 2.0));
+                gridPoints.Add(new Point3d(vecY / 2.0));
+                gridPoints.Add(new Point3d(vecX / 2.0) + vecY);
+                gridPoints.Add(new Point3d(vecY / 2.0) + vecX);
+                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
             }
             else if (wallpaperGroup == "c2mm" || wallpaperGroup == "cmm")
             {
                 fundDomain.Add(new Point3d(vecX / 2.0));
                 fundDomain.Add(new Point3d(vecY / 2.0));
-            }
-            else if (wallpaperGroup == "p3")
-            {
-                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
-                fundDomain.Add(new Point3d(vecX + vecY));
-                fundDomain.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
-            }
-            else if (wallpaperGroup == "p31m")
-            {
-                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
-                fundDomain.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
-            }
-            else if (wallpaperGroup == "p3m1")
-            {
-                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
-                fundDomain.Add(new Point3d(vecX + vecY));
+
+                gridPoints.Clear();
+                gridPoints.Add(new Point3d((vecY / 4.0) + (vecX / 4.0)));
+                gridPoints.Add(new Point3d((3.0 * (vecY / 4.0)) + (vecX / 4.0)));
+                gridPoints.Add(new Point3d((3.0 * (vecX / 4.0)) + (vecY / 4.0)));
+                gridPoints.Add(new Point3d((3.0 * (vecY / 4.0)) + (3.0 * (vecX / 4.0))));
             }
             else if (wallpaperGroup == "p4")
             {
                 fundDomain.Add(new Point3d(vecX / 2.0));
                 fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
                 fundDomain.Add(new Point3d(vecY / 2.0));
+
+                gridPoints.Add(new Point3d(vecX / 2.0));
+                gridPoints.Add(new Point3d(vecY / 2.0));
+                gridPoints.Add(new Point3d(vecX / 2.0) + vecY);
+                gridPoints.Add(new Point3d(vecY / 2.0) + vecX);
+                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
             }
             else if (wallpaperGroup == "p4mm" || wallpaperGroup == "p4m")
             {
                 fundDomain.Add(new Point3d(vecX / 2.0));
                 fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
+
+                gridPoints.Clear();
             }
             else if (wallpaperGroup == "p4gm" || wallpaperGroup == "p4g")
             {
                 fundDomain.Add(new Point3d(vecX / 2.0));
                 fundDomain.Add(new Point3d(vecY / 2.0));
+
+                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
+            }
+            else if (wallpaperGroup == "p3")
+            {
+                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d(vecX + vecY));
+                fundDomain.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
+
+                gridPoints.Clear();
+                gridPoints.Add(origin);
+                gridPoints.Add(new Point3d(origin + vecY));
+                gridPoints.Add(new Point3d(origin + vecX + vecY));
+                gridPoints.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
+                gridPoints.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                gridPoints.Add(new Point3d(origin + ((vecY - vecX)) / 3.0));
+                gridPoints.Add(new Point3d(origin + (vecX + vecY) + ((vecY - vecX)) / 3.0));
+            }
+            else if (wallpaperGroup == "p31m")
+            {
+                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
+
+                gridPoints.Clear();
+            }
+            else if (wallpaperGroup == "p3m1")
+            {
+                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d(vecX + vecY));
+
+                gridPoints.Clear();
+                gridPoints.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                gridPoints.Add(new Point3d(origin + vecX + (vecX + vecY)) / 3.0);
             }
             else if (wallpaperGroup == "p6")
             {
                 fundDomain.Add(new Point3d(vecY / 2.0));
                 fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
                 fundDomain.Add(new Point3d((vecX + vecY) / 2.0));
+
+                gridPoints.Add(new Point3d(origin + (vecY /2.0)));
+                gridPoints.Add(new Point3d(origin + (vecX /2.0)));
+                gridPoints.Add(new Point3d(origin + vecX + (vecY /2.0)));
+                gridPoints.Add(new Point3d(origin + vecY + (vecX /2.0)));
+                gridPoints.Add(new Point3d(origin + (vecY / 2.0) + (vecX /2.0)));
+                gridPoints.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
+                gridPoints.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
             }
             else if (wallpaperGroup == "p6mm" || wallpaperGroup == "p6m")
             {
                 fundDomain.Add(new Point3d(vecY / 2.0));
                 fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+
+                gridPoints.Clear();
             }
             else
             {
                 //throw error
             }
             fundDomain.Add(origin);
+            gridPointsOut = gridPoints;
             return new PolylineCurve(fundDomain);
         }
 

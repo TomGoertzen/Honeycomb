@@ -3,6 +3,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Geometry;
 using Grasshopper.Kernel.Geometry.Voronoi;
 using Grasshopper.Kernel.Types;
+using Rhino;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
@@ -55,6 +56,17 @@ namespace Kaleidoscope
             DA.GetData(2, ref uv);
             DA.GetDataTree(0, out GH_Structure<GH_Transform> transformations);
 
+
+            if (1 - uv.X < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance || uv.X < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Evaluation too near to 1.0 or 0, may encounter errors.");
+            }
+
+            if (1 - uv.Y < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance || uv.Y < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Evaluation too near to 1.0 or 0, may encounter errors.");
+            }
+
             //GET ONE CELL Ts
             List<GH_Transform> oneCellTransform = (List<GH_Transform>)transformations.get_Branch(0);
 
@@ -62,6 +74,7 @@ namespace Kaleidoscope
             Boolean isPolyline = inCurve.TryGetPolyline(out Polyline boundary);
             if (!isPolyline)
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Is not a Polyline");
+
             NurbsSurface cellSrf = null;
             if (boundary.Count == 5)
                 cellSrf = NurbsSurface.CreateFromCorners(boundary[0], boundary[1], boundary[2], boundary[3]);
@@ -70,13 +83,15 @@ namespace Kaleidoscope
             else
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Wrong number of Polyline Points");
 
-
             //GET IMPORTANT STUFF FROM SRF
             cellSrf.SetDomain(0, new Interval(0.0, 1.0));
             cellSrf.SetDomain(1, new Interval(0.0, 1.0));
+
             cellSrf.Evaluate(uv.X, uv.Y, 3, out Point3d evalPt, out Vector3d[] derivatives);
+
             cellSrf.Evaluate(1.0, 0.0, 3, out Point3d pX, out Vector3d[] d3);
             cellSrf.Evaluate(0.0, 1.0, 3, out Point3d pY, out Vector3d[] d2);
+
             Vector3d vecX = new Vector3d(pX);
             Vector3d vecY = new Vector3d(pY);
 
@@ -187,13 +202,11 @@ namespace Kaleidoscope
                     if (testPt.DistanceTo(srfPt) > 0.1)
                     {
                         pointsContained = false;
-                        this.AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, j.ToString());
                         //break;
                     }
                 }
                 if (pointsContained)
                 {
-                    this.AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Found contained points");
                     return curT;
                 }
             }

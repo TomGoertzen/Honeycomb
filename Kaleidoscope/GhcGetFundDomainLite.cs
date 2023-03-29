@@ -68,7 +68,7 @@ namespace Kaleidoscope
             DA.SetDataTree(0, allTransforms);
             PolylineCurve cellOutlines = GhcGetFundDomain.MakeCelloutlines(wallpaperGroup, origin, vecX, vecY);
             DA.SetData("Base Cell", cellOutlines);
-            PolylineCurve fundDomain = GhcGetFundDomain.SuggestFundamentalDomain(wallpaperGroup, origin, vecX, vecY);
+            PolylineCurve fundDomain = GhcGetFundDomain.SuggestFundamentalDomain(wallpaperGroup, origin, vecX, vecY, out List<Point3d> gridPoints);
             DA.SetData("Fundamental Domain", fundDomain);
         }
 
