@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Grasshopper;
-using Grasshopper.Kernel;
+﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
 using Kaleidoscope.Properties;
 using Rhino;
-using Rhino.Display;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 namespace Kaleidoscope
 {
@@ -212,8 +208,8 @@ namespace Kaleidoscope
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
                 Point3d rotationCenter = (origin + vecY + (vecY + vecX)) / 3.0;
-                Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0/3.0), Vector3d.ZAxis, rotationCenter);
-                Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0/3.0), Vector3d.ZAxis, rotationCenter);
+                Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0 / 3.0), Vector3d.ZAxis, rotationCenter);
+                Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0 / 3.0), Vector3d.ZAxis, rotationCenter);
                 baseCellTransform.Add(p3Rotation1);
                 baseCellTransform.Add(p3Rotation2);
             }
@@ -276,7 +272,7 @@ namespace Kaleidoscope
                 baseCellTransform.Add(p3Rotation3 * pgMirrorY);
                 baseCellTransform.Add(pgMirrorY);
             }
-            else if (wallpaperGroup == "p4gm" || wallpaperGroup == "p4g") 
+            else if (wallpaperGroup == "p4gm" || wallpaperGroup == "p4g")
             {
                 vecY *= cellD1;
                 vecY.Rotate(Math.PI / 2.0, Vector3d.ZAxis);
@@ -346,8 +342,8 @@ namespace Kaleidoscope
             }
             return baseCellTransform;
         }
-        public static GH_Structure<GH_Transform> CalculateAllTransforms(List<Transform> baseCellTransform, 
-                                                                  Vector3d vecX, Vector3d vecY, 
+        public static GH_Structure<GH_Transform> CalculateAllTransforms(List<Transform> baseCellTransform,
+                                                                  Vector3d vecX, Vector3d vecY,
                                                                   double cellsX, double cellsY)
         {
             GH_Structure<GH_Transform> translateTransforms = new GH_Structure<GH_Transform>();
@@ -428,7 +424,7 @@ namespace Kaleidoscope
             }
             else if (wallpaperGroup == "pm")
             {
-                fundDomain.Add(new Point3d(vecX  / 2.0));
+                fundDomain.Add(new Point3d(vecX / 2.0));
                 fundDomain.Add(new Point3d(vecY + (vecX / 2.0)));
                 fundDomain.Add(new Point3d(vecY));
 
@@ -556,11 +552,11 @@ namespace Kaleidoscope
                 fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
                 fundDomain.Add(new Point3d((vecX + vecY) / 2.0));
 
-                gridPoints.Add(new Point3d(origin + (vecY /2.0)));
-                gridPoints.Add(new Point3d(origin + (vecX /2.0)));
-                gridPoints.Add(new Point3d(origin + vecX + (vecY /2.0)));
-                gridPoints.Add(new Point3d(origin + vecY + (vecX /2.0)));
-                gridPoints.Add(new Point3d(origin + (vecY / 2.0) + (vecX /2.0)));
+                gridPoints.Add(new Point3d(origin + (vecY / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0)));
+                gridPoints.Add(new Point3d(origin + vecX + (vecY / 2.0)));
+                gridPoints.Add(new Point3d(origin + vecY + (vecX / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecY / 2.0) + (vecX / 2.0)));
                 gridPoints.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
                 gridPoints.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
             }
