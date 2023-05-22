@@ -9,6 +9,7 @@
   </PropertyGroup>
 	
   <ItemGroup>
+    <Compile Remove="GhcPairDomainEdges2.cs" />
     <Compile Remove="GhcWallpaperGroupsDropdown.cs" />
   </ItemGroup>
   
@@ -22,6 +23,7 @@
     <Reference Include="RhinoCommon">
       <HintPath>..\..\..\..\..\..\Program Files\Rhino 7\System\RhinoCommon.dll</HintPath>
     </Reference>
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   
   <ItemGroup>

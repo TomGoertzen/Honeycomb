@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Security.Cryptography;
-using Grasshopper.Kernel;
+﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using Rhino;
+using Kaleidoscope.Properties;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 namespace Kaleidoscope
 {
@@ -30,9 +27,9 @@ namespace Kaleidoscope
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            pManager.AddPointParameter("Point List", "P", "Points to amend the fundamental domain with.", GH_ParamAccess.list);
             pManager.AddCurveParameter("Paired Input Curves", "I", "Use 'Pair Domain Edges' to produce this input.", GH_ParamAccess.tree);
-            pManager.AddTransformParameter("Pair Trasformations", "T", "Use 'Pair Domain Edges' to produce this input.", GH_ParamAccess.tree);
-            pManager.AddPointParameter("Evalutation Point List", "E", "Points to amend the fundamental domain with.", GH_ParamAccess.list);
+            pManager.AddTransformParameter("Pair Transformations", "T", "Use 'Pair Domain Edges' to produce this input.", GH_ParamAccess.tree);
             //pManager.AddBooleanParameter("Flip Pair List", "F", "Reorder pairs of input curves", GH_ParamAccess.list);
             //pManager.AddBooleanParameter("Interpolate", "S", "If true, construct interpolated curves. Else, construct polyline.", GH_ParamAccess.list);
         }
@@ -51,33 +48,19 @@ namespace Kaleidoscope
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            DA.GetDataTree(0, out GH_Structure<GH_Curve> inputCurves);
-            DA.GetDataTree(1, out GH_Structure<GH_Transform> inputTransforms);
-            List<Point3d> evalPoints = new List<Point3d>();
-            DA.GetDataList(2, evalPoints);
-
-            GH_Structure<GH_Curve> flattenedCurves = inputCurves.Duplicate();
-            flattenedCurves.Flatten();
-            List<Curve> curveList = new List<Curve>();
-            foreach (GH_Curve ghCurve in flattenedCurves) curveList.Add(ghCurve.Value);
-            Curve[] curveArray = curveList.ToArray();
-            Curve boundary = Curve.JoinCurves(curveArray)[0];
-            Surface srfToEval = Brep.CreatePlanarBreps(boundary, RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)[0].Surfaces[0];
-
-            srfToEval.SetDomain(0, new Interval(0.0, 1.0));
-            srfToEval.SetDomain(1, new Interval(0.0, 1.0));
+            List<Point3d> inPoints = new List<Point3d>();
+            DA.GetDataList(0, inPoints);
+            DA.GetDataTree(1, out GH_Structure<GH_Curve> inputCurves);
+            DA.GetDataTree(2, out GH_Structure<GH_Transform> inputTransforms);
 
             GH_Structure<GH_Curve> curves = new GH_Structure<GH_Curve>();
-            int evalIndex = 0;
             for (int i = 0; i < inputCurves.Branches.Count; i++)
             {
                 if (inputTransforms.PathExists(new GH_Path(i)))
                 {
-                    srfToEval.Evaluate(evalPoints[evalIndex].X, evalPoints[evalIndex].Y, 0, out Point3d evalAt, out Vector3d[] d);
-                    evalIndex++;
                     Point3d s = inputCurves.Branches[i][0].Value.PointAtStart;
                     Point3d e = inputCurves.Branches[i][0].Value.PointAtEnd;
-                    List<Point3d> ptsToCurve = new List<Point3d> { s, evalAt, e };
+                    List<Point3d> ptsToCurve = new List<Point3d> { s, inPoints[i], e };
                     Curve newCurve = new Polyline(ptsToCurve).ToPolylineCurve();
                     Curve transCurve = (Curve)newCurve.Duplicate();
                     Transform t = ((List<GH_Transform>)(inputTransforms.get_Branch(new GH_Path(i))))[0].Value;
@@ -107,7 +90,7 @@ namespace Kaleidoscope
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.WarpDomain;
             }
         }
 

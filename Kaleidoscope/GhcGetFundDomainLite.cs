@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Grasshopper.Kernel;
+﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Kaleidoscope.Properties;
-using Rhino;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
 
 namespace Kaleidoscope
 {
@@ -16,7 +14,7 @@ namespace Kaleidoscope
         /// Initializes a new instance of the GhcGetFundDomainLite class.
         /// </summary>
         public GhcGetFundDomainLite()
-          : base("GetFundamentalDomainLite",
+          : base("Get Fundamental Domain (Lite)",
                  "FundDLt",
                  "Use this component to easily generate transformation data and a gemetrical boundary for your tilings",
                  "Kaleidoscope",
@@ -38,8 +36,9 @@ namespace Kaleidoscope
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddTransformParameter("Transform Data", "T", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
-            pManager.AddCurveParameter("Base Cell", "BC", "Geometry representing the cell boundary", GH_ParamAccess.item);
-            pManager.AddCurveParameter("Fundamental Domain", "FD", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
+            pManager.AddPointParameter("Grid Points", "G", "Geometry representing the cells of the grid", GH_ParamAccess.list);
+            pManager.AddCurveParameter("Base Cell", "C", "Geometry representing the cell boundary", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Fundamental Domain", "D", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -69,6 +68,7 @@ namespace Kaleidoscope
             PolylineCurve cellOutlines = GhcGetFundDomain.MakeCelloutlines(wallpaperGroup, origin, vecX, vecY);
             DA.SetData("Base Cell", cellOutlines);
             PolylineCurve fundDomain = GhcGetFundDomain.SuggestFundamentalDomain(wallpaperGroup, origin, vecX, vecY, out List<Point3d> gridPoints);
+            DA.SetDataList(1, gridPoints);
             DA.SetData("Fundamental Domain", fundDomain);
         }
 

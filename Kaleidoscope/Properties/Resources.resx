@@ -118,13 +118,34 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Dropdown" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Dropdown.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="FromRhino" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\FromRhino.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="GetFDIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\GetFDIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="GetFDIconLT" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\GetFDIconLT.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="GetVoronoiDomain" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\GetVoronoiDomain.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="MakeInterlockingBlock" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\MakeInterlockingBlock.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="MakeLoftedBlock" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\MakeLoftedBlock.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="PairDomainEdges" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PairDomainEdges.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="PluginIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PluginIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="WarpDomain" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\WarpDomain.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
 </root>

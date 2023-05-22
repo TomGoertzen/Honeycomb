@@ -14,7 +14,7 @@ namespace Kaleidoscope
     {
         /// Initializes a new instance of the GhcMakeGrid class.
         public GhcGetFundDomain()
-          : base("GetFundamentalDomain",
+          : base("Get Fundamental Domain",
                  "FundD",
                  "Use this component to generate transformation data and a gemetrical boundary for your tilings",
                  "Kaleidoscope",
@@ -30,11 +30,11 @@ namespace Kaleidoscope
 
             pManager.AddNumberParameter("Cell Dimension 1", "C1", "Dimension 1 of the base cell", GH_ParamAccess.item, 10.0);
             pManager.AddNumberParameter("Cell Dimension 2", "C2", "Dimension 2 of the base cell (when applicable)", GH_ParamAccess.item, 10.0);
-            pManager.AddAngleParameter("Cell Angle", "CA", "Angle of the base cell (when applicable)", GH_ParamAccess.item, Math.PI / 2.0);
+            pManager.AddAngleParameter("Cell Angle", "A", "Angle of the base cell (when applicable)", GH_ParamAccess.item, Math.PI / 2.0);
 
             pManager.AddPointParameter("Grid Origin", "O", "Position of the grid in rhino-space", GH_ParamAccess.item, new Point3d(0.0, 0.0, 0.0));
-            pManager.AddIntegerParameter("X Cell Repetitions", "NumX", "Number of cells in the X Direction", GH_ParamAccess.item, 5);
-            pManager.AddIntegerParameter("Y Cell Repetitions", "NumY", "Number of cells in the Y Direction", GH_ParamAccess.item, 5);
+            pManager.AddIntegerParameter("X Cell Repetitions", "X", "Number of cells in the X Direction", GH_ParamAccess.item, 5);
+            pManager.AddIntegerParameter("Y Cell Repetitions", "Y", "Number of cells in the Y Direction", GH_ParamAccess.item, 5);
         }
 
         /// Registers all the output parameters for this component.
@@ -42,8 +42,8 @@ namespace Kaleidoscope
         {
             pManager.AddTransformParameter("Transform Data", "T", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
             pManager.AddPointParameter("Grid Points", "G", "Geometry representing the cells of the grid", GH_ParamAccess.list);
-            pManager.AddCurveParameter("Base Cell", "BC", "Geometry representing the cell boundary", GH_ParamAccess.item);
-            pManager.AddCurveParameter("Fundamental Domain", "FD", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Base Cell", "C", "Geometry representing the cell boundary", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Fundamental Domain", "D", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }
 
         protected override void BeforeSolveInstance()
@@ -460,11 +460,11 @@ namespace Kaleidoscope
                 fundDomain.Add(new Point3d((vecX / 4.0) + vecY));
                 fundDomain.Add(new Point3d(vecY));
 
+                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
                 gridPoints.Add(new Point3d(vecX / 2.0));
                 gridPoints.Add(new Point3d(vecY / 2.0));
                 gridPoints.Add(new Point3d(vecX / 2.0) + vecY);
                 gridPoints.Add(new Point3d(vecY / 2.0) + vecX);
-                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
             }
             else if (wallpaperGroup == "p2gg" || wallpaperGroup == "pgg")
             {

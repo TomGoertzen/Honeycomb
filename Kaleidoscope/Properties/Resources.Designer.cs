@@ -63,6 +63,26 @@ namespace Kaleidoscope.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Dropdown {
+            get {
+                object obj = ResourceManager.GetObject("Dropdown", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap FromRhino {
+            get {
+                object obj = ResourceManager.GetObject("FromRhino", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap GetFDIcon {
             get {
                 object obj = ResourceManager.GetObject("GetFDIcon", resourceCulture);
@@ -83,9 +103,59 @@ namespace Kaleidoscope.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap GetVoronoiDomain {
+            get {
+                object obj = ResourceManager.GetObject("GetVoronoiDomain", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap MakeInterlockingBlock {
+            get {
+                object obj = ResourceManager.GetObject("MakeInterlockingBlock", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap MakeLoftedBlock {
+            get {
+                object obj = ResourceManager.GetObject("MakeLoftedBlock", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap PairDomainEdges {
+            get {
+                object obj = ResourceManager.GetObject("PairDomainEdges", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap PluginIcon {
             get {
                 object obj = ResourceManager.GetObject("PluginIcon", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap WarpDomain {
+            get {
+                object obj = ResourceManager.GetObject("WarpDomain", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -1,23 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Xml.Linq;
-using Grasshopper.Kernel;
+﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Kaleidoscope.Properties;
 using Rhino;
 using Rhino.Geometry;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Kaleidoscope
 {
-    public class GhcMakeInterlockingBlock : GH_Component
+    public class GhcMakeInterlockingBlockT : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the GhcMakeInterlockingBlock class.
         /// </summary>
-        public GhcMakeInterlockingBlock()
-          : base("GhcMakeInterlockingBlock",
+        public GhcMakeInterlockingBlockT()
+          : base("Make Interlocking Block: Triangulate",
                  "Nickname",
                  "Description",
                  "Kaleidoscope",
@@ -80,7 +79,7 @@ namespace Kaleidoscope
                     polyline.Transform(offsetTransform);
                     polylines.Add(polyline);
                 }
-                else AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Amended curves not polylines.");
+                else AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Amended curves not polylines. Try using 'Make Interlocking Block Loft.'");
             }
             List<Brep> breps2Join = new List<Brep> { cap1, cap2 };
             for (int i = 0; i < curveList1.Count; i++)
@@ -122,7 +121,7 @@ namespace Kaleidoscope
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.MakeInterlockingBlock;
             }
         }
 

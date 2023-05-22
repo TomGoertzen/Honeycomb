@@ -3,6 +3,7 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Geometry;
 using Grasshopper.Kernel.Geometry.Voronoi;
 using Grasshopper.Kernel.Types;
+using Kaleidoscope.Properties;
 using Rhino;
 using Rhino.Geometry;
 using System;
@@ -16,7 +17,7 @@ namespace Kaleidoscope
         /// Initializes a new instance of the GhcVoronoiDomain class.
         /// </summary>
         public GhcVoronoiDomain()
-          : base("VoronoiDomain",
+          : base("Voronoi Domain",
                  "VorDom",
                  "Use this component to generate a voronoi fundamental domain.",
                  "Kaleidoscope",
@@ -30,7 +31,7 @@ namespace Kaleidoscope
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTransformParameter("Transformation Data", "T", "Transformations based on wallpaper group", GH_ParamAccess.tree);
-            pManager.AddCurveParameter("Base Cell", "c", "Boundary of the Wallpaper's base cell", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Base Cell", "C", "Boundary of the Wallpaper's base cell", GH_ParamAccess.item);
             pManager.AddPointParameter("UV Coordinates", "UV", "Coordinates of the evaluated Point", GH_ParamAccess.item);
         }
 
@@ -41,7 +42,7 @@ namespace Kaleidoscope
         {
             pManager.AddTransformParameter("Transform Data", "T", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
             pManager.AddPointParameter("Eval Point", "P", "The evaluated point", GH_ParamAccess.item);
-            pManager.AddCurveParameter("Fundamental Domain", "FD", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
+            pManager.AddCurveParameter("Fundamental Domain", "D", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -56,15 +57,27 @@ namespace Kaleidoscope
             DA.GetData(2, ref uv);
             DA.GetDataTree(0, out GH_Structure<GH_Transform> transformations);
 
-
+            /*
             if (1 - uv.X < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance || uv.X < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Evaluation too near to 1.0 or 0, may encounter errors.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Evaluation too near to 1.0 or 0, may encounter errors.");
             }
 
             if (1 - uv.Y < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance || uv.Y < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
             {
-                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Evaluation too near to 1.0 or 0, may encounter errors.");
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Evaluation too near to 1.0 or 0, may encounter errors.");
+            }
+            */
+
+            if (Math.Abs(1 - uv.Y) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance) uv.Y = 0.9999;
+            if (Math.Abs(1 - uv.X) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance) uv.X = 0.9999;
+            if (Math.Abs(0 - uv.Y) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance) uv.Y = 0.0001;
+            if (Math.Abs(0 - uv.X) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance) uv.X = 0.0001;
+            if (Math.Abs(0.5 - uv.Y) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance &&
+                Math.Abs(0.5 - uv.X) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+            {
+                uv.X = 0.5001;
+                uv.Y = 0.5001;
             }
 
             //GET ONE CELL Ts
@@ -223,7 +236,7 @@ namespace Kaleidoscope
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.GetVoronoiDomain;
             }
         }
 
