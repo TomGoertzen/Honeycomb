@@ -3,13 +3,13 @@ using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Geometry;
 using Grasshopper.Kernel.Geometry.Voronoi;
 using Grasshopper.Kernel.Types;
-using Kaleidoscope.Properties;
+using Honeycomb.Properties;
 using Rhino;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
     public class GhcVoronoiDomain : GH_Component
     {
@@ -20,7 +20,7 @@ namespace Kaleidoscope
           : base("Voronoi Domain",
                  "VorDom",
                  "Use this component to generate a voronoi fundamental domain.",
-                 "Kaleidoscope",
+                 "Honeycomb",
                  "Tiling")
         {
         }

@@ -1,12 +1,12 @@
 ﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using Kaleidoscope.Properties;
+using Honeycomb.Properties;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
     public class GhcGetFundDomainLite : GH_Component
     {
@@ -16,8 +16,8 @@ namespace Kaleidoscope
         public GhcGetFundDomainLite()
           : base("Get Fundamental Domain (Lite)",
                  "FundDLt",
-                 "Use this component to easily generate transformation data and a gemetrical boundary for your tilings",
-                 "Kaleidoscope",
+                 "Use this component to easily generate transformation data and a gemetrical boundary for your tilings.",
+                 "Honeycomb",
                  "Tiling")
         {
         }

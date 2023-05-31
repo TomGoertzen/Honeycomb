@@ -2,13 +2,13 @@
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Parameters;
 using Grasshopper.Kernel.Types;
-using Kaleidoscope.Properties;
+using Honeycomb.Properties;
 using Rhino;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
     public class GhcGetFundDomain : GH_Component
     {
@@ -16,8 +16,8 @@ namespace Kaleidoscope
         public GhcGetFundDomain()
           : base("Get Fundamental Domain",
                  "FundD",
-                 "Use this component to generate transformation data and a gemetrical boundary for your tilings",
-                 "Kaleidoscope",
+                 "Use this component to generate transformation data and a gemetrical boundary for your tilings.",
+                 "Honeycomb",
                  "Tiling")
         {
         }
@@ -207,7 +207,7 @@ namespace Kaleidoscope
             {
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
-                Point3d rotationCenter = (origin + vecY + (vecY + vecX)) / 3.0;
+                Point3d rotationCenter = (origin + (vecY + (vecY + vecX)) / 3.0);
                 Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0 / 3.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0 / 3.0), Vector3d.ZAxis, rotationCenter);
                 baseCellTransform.Add(p3Rotation1);
@@ -217,7 +217,7 @@ namespace Kaleidoscope
             {
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
-                Point3d rotationCenter = (origin + vecY + (vecY + vecX)) / 3.0;
+                Point3d rotationCenter = (origin + (vecY + (vecY + vecX)) / 3.0);
                 Transform pMirrorY = Transform.Mirror(new Plane(rotationCenter, Vector3d.ZAxis, Vector3d.YAxis));
                 Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0 / 3.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0 / 3.0), Vector3d.ZAxis, rotationCenter);
@@ -231,7 +231,7 @@ namespace Kaleidoscope
             {
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
-                Point3d rotationCenter = (origin + vecY + (vecY + vecX)) / 3.0;
+                Point3d rotationCenter = (origin + (vecY + (vecY + vecX)) / 3.0);
                 Transform pgMirrorXY = Transform.Mirror(new Plane(origin, Vector3d.ZAxis, vecX + vecY));
                 Transform p3Rotation1 = Transform.Rotation(Math.PI * (2.0 / 3.0), Vector3d.ZAxis, rotationCenter);
                 Transform p3Rotation2 = Transform.Rotation(Math.PI * (4.0 / 3.0), Vector3d.ZAxis, rotationCenter);
@@ -370,9 +370,9 @@ namespace Kaleidoscope
             List<Point3d> cellBounds = new List<Point3d>();
             cellBounds.Add(origin);
             if (WPG != "p3" && WPG != "p31m")
-                cellBounds.Add(new Point3d(vecX));
-            cellBounds.Add(new Point3d(vecX + vecY));
-            cellBounds.Add(new Point3d(vecY));
+                cellBounds.Add(new Point3d(origin + vecX));
+            cellBounds.Add(new Point3d(origin + vecX + vecY));
+            cellBounds.Add(new Point3d(origin + vecY));
             cellBounds.Add(origin);
             return new PolylineCurve(cellBounds);
         }
@@ -399,171 +399,171 @@ namespace Kaleidoscope
 
             List<Point3d> gridPoints = new List<Point3d>();
             gridPoints.Add(origin);
-            gridPoints.Add(new Point3d(vecX));
-            gridPoints.Add(new Point3d(vecY));
-            gridPoints.Add(new Point3d(vecX + vecY));
+            gridPoints.Add(new Point3d(origin + vecX));
+            gridPoints.Add(new Point3d(origin + vecY));
+            gridPoints.Add(new Point3d(origin + vecX + vecY));
 
             if (wallpaperGroup == "p1")
             {
-                fundDomain.Add(new Point3d(vecX));
-                fundDomain.Add(new Point3d(vecX + vecY));
-                fundDomain.Add(new Point3d(vecY));
+                fundDomain.Add(new Point3d(origin + vecX));
+                fundDomain.Add(new Point3d(origin + vecX + vecY));
+                fundDomain.Add(new Point3d(origin + vecY));
 
                 gridPoints.Clear();
             }
             else if (wallpaperGroup == "p2")
             {
-                fundDomain.Add(new Point3d(vecX + vecY));
-                fundDomain.Add(new Point3d(vecY));
+                fundDomain.Add(new Point3d(origin + vecX + vecY));
+                fundDomain.Add(new Point3d(origin + vecY));
 
-                gridPoints.Add(new Point3d(vecX / 2.0));
-                gridPoints.Add(new Point3d(vecY / 2.0));
-                gridPoints.Add(new Point3d(vecX + (vecY / 2.0)));
-                gridPoints.Add(new Point3d((vecX / 2.0) + vecY));
-                gridPoints.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecY / 2.0)));
+                gridPoints.Add(new Point3d(origin + vecX + (vecY / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0) + vecY));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0) + (vecY / 2.0)));
             }
             else if (wallpaperGroup == "pm")
             {
-                fundDomain.Add(new Point3d(vecX / 2.0));
-                fundDomain.Add(new Point3d(vecY + (vecX / 2.0)));
-                fundDomain.Add(new Point3d(vecY));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0)));
+                fundDomain.Add(new Point3d(origin + vecY + ((vecX / 2.0))));
+                fundDomain.Add(new Point3d(origin + vecY));
 
                 gridPoints.Clear();
             }
             else if (wallpaperGroup == "pg")
             {
-                fundDomain.Add(new Point3d(vecX));
-                fundDomain.Add(new Point3d(vecX + (vecY / 2.0)));
-                fundDomain.Add(new Point3d(vecY / 2.0));
+                fundDomain.Add(new Point3d(origin + vecX));
+                fundDomain.Add(new Point3d(origin + vecX + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecY / 2.0)));
 
                 gridPoints.Clear();
             }
             else if (wallpaperGroup == "cm")
             {
-                fundDomain.Add(new Point3d(vecX / 2.0));
-                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
-                fundDomain.Add(new Point3d(vecY / 2.0));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0) + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecY / 2.0)));
 
                 gridPoints.Clear();
             }
             else if (wallpaperGroup == "p2mm" || wallpaperGroup == "pmm")
             {
-                fundDomain.Add(new Point3d(vecX / 2.0));
-                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
-                fundDomain.Add(new Point3d(vecY / 2.0));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0) + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecY / 2.0)));
 
                 gridPoints.Clear();
             }
             else if (wallpaperGroup == "p2mg" || wallpaperGroup == "pmg")
             {
-                fundDomain.Add(new Point3d(vecX / 4.0));
-                fundDomain.Add(new Point3d((vecX / 4.0) + vecY));
-                fundDomain.Add(new Point3d(vecY));
+                fundDomain.Add(new Point3d(origin + (vecX / 4.0)));
+                fundDomain.Add(new Point3d(origin + (vecX / 4.0) + vecY));
+                fundDomain.Add(new Point3d(origin + vecY));
 
-                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
-                gridPoints.Add(new Point3d(vecX / 2.0));
-                gridPoints.Add(new Point3d(vecY / 2.0));
-                gridPoints.Add(new Point3d(vecX / 2.0) + vecY);
-                gridPoints.Add(new Point3d(vecY / 2.0) + vecX);
+                gridPoints.Add(new Point3d(origin + ((vecX + vecY) / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecY / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0) + vecY));
+                gridPoints.Add(new Point3d(origin + (vecY / 2.0) + vecX));
             }
             else if (wallpaperGroup == "p2gg" || wallpaperGroup == "pgg")
             {
-                fundDomain.Add(new Point3d(vecX / 2.0));
-                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
-                fundDomain.Add(new Point3d(vecY / 2.0));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0) + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecY / 2.0)));
 
-                gridPoints.Add(new Point3d(vecX / 2.0));
-                gridPoints.Add(new Point3d(vecY / 2.0));
-                gridPoints.Add(new Point3d(vecX / 2.0) + vecY);
-                gridPoints.Add(new Point3d(vecY / 2.0) + vecX);
-                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecY / 2.0)));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0) + vecY));
+                gridPoints.Add(new Point3d(origin + (vecY / 2.0) + vecX));
+                gridPoints.Add(new Point3d(origin + ((vecX + vecY) / 2.0)));
             }
             else if (wallpaperGroup == "c2mm" || wallpaperGroup == "cmm")
             {
-                fundDomain.Add(new Point3d(vecX / 2.0));
-                fundDomain.Add(new Point3d(vecY / 2.0));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecY / 2.0)));
 
                 gridPoints.Clear();
-                gridPoints.Add(new Point3d((vecY / 4.0) + (vecX / 4.0)));
-                gridPoints.Add(new Point3d((3.0 * (vecY / 4.0)) + (vecX / 4.0)));
-                gridPoints.Add(new Point3d((3.0 * (vecX / 4.0)) + (vecY / 4.0)));
-                gridPoints.Add(new Point3d((3.0 * (vecY / 4.0)) + (3.0 * (vecX / 4.0))));
+                gridPoints.Add(new Point3d(origin + ((vecY / 4.0) + (vecX / 4.0))));
+                gridPoints.Add(new Point3d(origin + ((3.0 * (vecY / 4.0)) + (vecX / 4.0))));
+                gridPoints.Add(new Point3d(origin + ((3.0 * (vecX / 4.0)) + (vecY / 4.0))));
+                gridPoints.Add(new Point3d(origin + ((3.0 * (vecY / 4.0)) + (3.0 * (vecX / 4.0)))));
             }
             else if (wallpaperGroup == "p4")
             {
-                fundDomain.Add(new Point3d(vecX / 2.0));
-                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
-                fundDomain.Add(new Point3d(vecY / 2.0));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0) + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecY / 2.0)));
 
-                gridPoints.Add(new Point3d(vecX / 2.0));
-                gridPoints.Add(new Point3d(vecY / 2.0));
-                gridPoints.Add(new Point3d(vecX / 2.0) + vecY);
-                gridPoints.Add(new Point3d(vecY / 2.0) + vecX);
-                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0)));
+                gridPoints.Add(new Point3d(origin + vecY / 2.0));
+                gridPoints.Add(new Point3d(origin + (vecX / 2.0) + vecY));
+                gridPoints.Add(new Point3d(origin + (vecY / 2.0) + vecX));
+                gridPoints.Add(new Point3d(origin + ((vecX + vecY) / 2.0)));
             }
             else if (wallpaperGroup == "p4mm" || wallpaperGroup == "p4m")
             {
-                fundDomain.Add(new Point3d(vecX / 2.0));
-                fundDomain.Add(new Point3d((vecX / 2.0) + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0) + (vecY / 2.0)));
 
                 gridPoints.Clear();
             }
             else if (wallpaperGroup == "p4gm" || wallpaperGroup == "p4g")
             {
-                fundDomain.Add(new Point3d(vecX / 2.0));
-                fundDomain.Add(new Point3d(vecY / 2.0));
+                fundDomain.Add(new Point3d(origin + (vecX / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecY / 2.0)));
 
-                gridPoints.Add(new Point3d((vecX + vecY) / 2.0));
+                gridPoints.Add(new Point3d(origin + ((vecX + vecY) / 2.0)));
             }
             else if (wallpaperGroup == "p3")
             {
-                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
-                fundDomain.Add(new Point3d(vecX + vecY));
-                fundDomain.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
+                fundDomain.Add(new Point3d(origin + (vecX + vecY)));
+                fundDomain.Add(new Point3d(origin + (vecX + (vecY + vecX)) / 3.0));
 
                 gridPoints.Clear();
                 gridPoints.Add(origin);
                 gridPoints.Add(new Point3d(origin + vecY));
                 gridPoints.Add(new Point3d(origin + vecX + vecY));
-                gridPoints.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
-                gridPoints.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                gridPoints.Add(new Point3d(origin + (vecX + (vecY + vecX)) / 3.0));
+                gridPoints.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
                 gridPoints.Add(new Point3d(origin + ((vecY - vecX)) / 3.0));
                 gridPoints.Add(new Point3d(origin + (vecX + vecY) + ((vecY - vecX)) / 3.0));
             }
             else if (wallpaperGroup == "p31m")
             {
-                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
-                fundDomain.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
+                fundDomain.Add(new Point3d(origin + (vecX + (vecY + vecX)) / 3.0));
 
                 gridPoints.Clear();
             }
             else if (wallpaperGroup == "p3m1")
             {
-                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
-                fundDomain.Add(new Point3d(vecX + vecY));
+                fundDomain.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
+                fundDomain.Add(new Point3d(origin + (vecX + vecY)));
 
                 gridPoints.Clear();
-                gridPoints.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
-                gridPoints.Add(new Point3d(origin + vecX + (vecX + vecY)) / 3.0);
+                gridPoints.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
+                gridPoints.Add(new Point3d(origin + (vecX + (vecX + vecY)) / 3.0));
             }
             else if (wallpaperGroup == "p6")
             {
-                fundDomain.Add(new Point3d(vecY / 2.0));
-                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
-                fundDomain.Add(new Point3d((vecX + vecY) / 2.0));
+                fundDomain.Add(new Point3d(origin + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
+                fundDomain.Add(new Point3d(origin + ((vecX + vecY) / 2.0)));
 
                 gridPoints.Add(new Point3d(origin + (vecY / 2.0)));
                 gridPoints.Add(new Point3d(origin + (vecX / 2.0)));
                 gridPoints.Add(new Point3d(origin + vecX + (vecY / 2.0)));
                 gridPoints.Add(new Point3d(origin + vecY + (vecX / 2.0)));
                 gridPoints.Add(new Point3d(origin + (vecY / 2.0) + (vecX / 2.0)));
-                gridPoints.Add(new Point3d(origin + vecX + (vecY + vecX)) / 3.0);
-                gridPoints.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                gridPoints.Add(new Point3d(origin + (vecX + (vecY + vecX)) / 3.0));
+                gridPoints.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
             }
             else if (wallpaperGroup == "p6mm" || wallpaperGroup == "p6m")
             {
-                fundDomain.Add(new Point3d(vecY / 2.0));
-                fundDomain.Add(new Point3d(origin + vecY + (vecY + vecX)) / 3.0);
+                fundDomain.Add(new Point3d(origin + (vecY / 2.0)));
+                fundDomain.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
 
                 gridPoints.Clear();
             }

@@ -1,14 +1,14 @@
 ﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using Kaleidoscope.Properties;
+using Honeycomb.Properties;
 using Rhino;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
     public class GhcMakeInterlockingBlockT : GH_Component
     {
@@ -17,9 +17,9 @@ namespace Kaleidoscope
         /// </summary>
         public GhcMakeInterlockingBlockT()
           : base("Make Interlocking Block: Triangulate",
-                 "Nickname",
-                 "Description",
-                 "Kaleidoscope",
+                 "InterTri",
+                 "Use this component to triangluate between two sets of paired edges.",
+                 "Honeycomb",
                  "Tiling")
         {
         }

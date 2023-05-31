@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Grasshopper;
+﻿using Grasshopper;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using Grasshopper.Kernel.Types.Transforms;
-using Kaleidoscope.Properties;
+using Honeycomb.Properties;
 using Rhino.Geometry;
-using Rhino.Runtime;
+using System;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
     public class GhcWallpaperArray : GH_Component
     {
@@ -19,7 +15,7 @@ namespace Kaleidoscope
           : base("Wallpaper Array",
                  "WPArry",
                  "Use wallpaper group transformation data to array geometry across the grid",
-                 "Kaleidoscope",
+                 "Honeycomb",
                  "Tiling")
         {
         }
@@ -60,10 +56,10 @@ namespace Kaleidoscope
                     outGeometry.Add(newItem, new GH_Path(path));
                 }
             }
-            
+
             ///
 
-            DA.SetDataTree(0,outGeometry);
+            DA.SetDataTree(0, outGeometry);
 
             ///
         }

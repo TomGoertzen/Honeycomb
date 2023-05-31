@@ -1,13 +1,13 @@
 ﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using Kaleidoscope.Properties;
+using Honeycomb.Properties;
 using Rhino;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
     public class GhcFundDomFromRhino : GH_Component
     {
@@ -17,8 +17,8 @@ namespace Kaleidoscope
         public GhcFundDomFromRhino()
           : base("Make Fundamental Domain From Rhino",
                  "DIYFundDom",
-                 "Description",
-                 "Kaleidoscope",
+                 "Use this component to generate a fundamental domain via rhino drive curves.",
+                 "Honeycomb",
                  "Tiling")
         {
         }

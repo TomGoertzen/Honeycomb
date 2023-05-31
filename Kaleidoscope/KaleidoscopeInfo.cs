@@ -1,14 +1,13 @@
-﻿using Grasshopper;
-using Grasshopper.Kernel;
-using Kaleidoscope.Properties;
+﻿using Grasshopper.Kernel;
+using Honeycomb.Properties;
 using System;
 using System.Drawing;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
-    public class KaleidoscopeInfo : GH_AssemblyInfo
+    public class HoneycombInfo : GH_AssemblyInfo
     {
-        public override string Name => "Kaleidoscope";
+        public override string Name => "Honeycomb";
 
         //Return a 24x24 pixel bitmap to represent this GHA library. 
         public override Bitmap Icon => Resources.PluginIcon;

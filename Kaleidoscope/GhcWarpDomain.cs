@@ -1,12 +1,12 @@
 ﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using Kaleidoscope.Properties;
+using Honeycomb.Properties;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
     public class GhcWarpDomain : GH_Component
     {
@@ -15,9 +15,9 @@ namespace Kaleidoscope
         /// </summary>
         public GhcWarpDomain()
           : base("Warp Domain",
-                 "Nickname",
-                 "Description",
-                 "Kaleidoscope",
+                 "WrpDom",
+                 "Use this component to change the fundamental domain via input points.",
+                 "Honeycomb",
                  "Tiling")
         {
         }

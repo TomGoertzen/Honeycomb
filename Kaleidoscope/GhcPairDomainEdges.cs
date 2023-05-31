@@ -1,14 +1,14 @@
 ﻿using Grasshopper.Kernel;
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
-using Kaleidoscope.Properties;
+using Honeycomb.Properties;
 using Rhino;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
     public class GhcPairDomainEdges : GH_Component
     {
@@ -17,9 +17,9 @@ namespace Kaleidoscope
         /// </summary>
         public GhcPairDomainEdges()
           : base("Pair Domain Edges",
-                 "Nickname",
-                 "Description",
-                 "Kaleidoscope",
+                 "PrEdges",
+                 "Use this component to pair edges in preperation for warp fundamental domain.",
+                 "Honeycomb",
                  "Tiling")
         {
         }
@@ -216,7 +216,32 @@ namespace Kaleidoscope
                     Transform t = new Transform(Transform.Translation(vec));
                     transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
                 }
-                else AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "huh?");
+                else
+                {
+                    Vector3d vec = new Line(start1, start2).Direction;
+                    Vector3d line1 = new Line(start1, end1).Direction;
+                    Vector3d line2 = new Line(start2, end2).Direction;
+                    double angle = Vector3d.VectorAngle(line1, line2);
+
+                    Transform translate = new Transform(Transform.Translation(vec));
+                    Transform mirror = new Transform(Transform.Mirror(new Plane(start1, end1, (start1 + new Vector3d(0.0, 0.0, 1.0)))));
+
+                    Transform rotate = new Transform(Transform.Rotation(angle, start1));
+                    Transform t = translate * rotate * mirror;
+                    end1.Transform(t);
+
+                    if (end2.DistanceTo(end1) > RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
+                    {
+                        rotate = new Transform(Transform.Rotation(-angle, start1));
+                        t = translate * rotate * mirror;
+                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
+
+                    }
+                    else
+                    {
+                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
+                    }
+                }
             }
 
             for (int i = 0; i < segments.Count; i++)

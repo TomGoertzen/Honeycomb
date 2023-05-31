@@ -1,10 +1,10 @@
 ﻿using GH_IO.Serialization;
 using Grasshopper.Kernel;
-using Kaleidoscope.Properties;
+using Honeycomb.Properties;
 using System;
 using System.Windows.Forms;
 
-namespace Kaleidoscope
+namespace Honeycomb
 {
     public enum PanelType
     {
@@ -35,8 +35,8 @@ namespace Kaleidoscope
         public GhcDropdown()
           : base("Wallpaper Group Selector",
                  "WPG Select",
-                 "...",
-                 "Kaleidoscope",
+                 "Right-Click 'WPG' to select from the list of wallpaper groups.",
+                 "Honeycomb",
                  "Tiling")
         {
         }
