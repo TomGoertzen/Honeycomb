@@ -16,7 +16,7 @@ namespace Honeycomb
         public GhcGetFundDomain()
           : base("Get Fundamental Domain",
                  "FundD",
-                 "Use this component to generate transformation data and a gemetrical boundary for your tilings.",
+                 "Use this component to generate transformation data and a geometrical boundary for your tilings.",
                  "Honeycomb",
                  "Tiling")
         {
@@ -74,6 +74,15 @@ namespace Honeycomb
             DA.GetData("Grid Origin", ref origin);
             DA.GetData("X Cell Repetitions", ref cellsX);
             DA.GetData("Y Cell Repetitions", ref cellsY);
+
+            if (wallpaperGroup == "p2mm" ||
+                wallpaperGroup == "p4mm" ||
+                wallpaperGroup == "p3m1" ||
+                wallpaperGroup == "p6mm")
+            {
+
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "This wallpaper group contains only mirror symmetries, certain functionalities will not work properly.");
+            }
 
             ///
 
@@ -213,7 +222,7 @@ namespace Honeycomb
                 baseCellTransform.Add(p3Rotation1);
                 baseCellTransform.Add(p3Rotation2);
             }
-            else if (wallpaperGroup == "p31m")
+            else if (wallpaperGroup == "p3m1")
             {
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
@@ -227,7 +236,7 @@ namespace Honeycomb
                 baseCellTransform.Add(pMirrorY * p3Rotation1);
                 baseCellTransform.Add(pMirrorY * p3Rotation2);
             }
-            else if (wallpaperGroup == "p3m1")
+            else if (wallpaperGroup == "p31m")
             {
                 vecY *= cellD1;
                 vecY.Rotate((2.0 * Math.PI) / 3.0, Vector3d.ZAxis);
@@ -369,7 +378,7 @@ namespace Honeycomb
         {
             List<Point3d> cellBounds = new List<Point3d>();
             cellBounds.Add(origin);
-            if (WPG != "p3" && WPG != "p31m")
+            if (WPG != "p3" && WPG != "p3m1")
                 cellBounds.Add(new Point3d(origin + vecX));
             cellBounds.Add(new Point3d(origin + vecX + vecY));
             cellBounds.Add(new Point3d(origin + vecY));
@@ -530,14 +539,14 @@ namespace Honeycomb
                 gridPoints.Add(new Point3d(origin + ((vecY - vecX)) / 3.0));
                 gridPoints.Add(new Point3d(origin + (vecX + vecY) + ((vecY - vecX)) / 3.0));
             }
-            else if (wallpaperGroup == "p31m")
+            else if (wallpaperGroup == "p3m1")
             {
                 fundDomain.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
                 fundDomain.Add(new Point3d(origin + (vecX + (vecY + vecX)) / 3.0));
 
                 gridPoints.Clear();
             }
-            else if (wallpaperGroup == "p3m1")
+            else if (wallpaperGroup == "p31m")
             {
                 fundDomain.Add(new Point3d(origin + (vecY + (vecY + vecX)) / 3.0));
                 fundDomain.Add(new Point3d(origin + (vecX + vecY)));

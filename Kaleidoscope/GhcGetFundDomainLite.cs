@@ -16,7 +16,7 @@ namespace Honeycomb
         public GhcGetFundDomainLite()
           : base("Get Fundamental Domain (Lite)",
                  "FundDLt",
-                 "Use this component to easily generate transformation data and a gemetrical boundary for your tilings.",
+                 "Use this component to easily generate transformation data and a geometrical boundary for your tilings.",
                  "Honeycomb",
                  "Tiling")
         {
@@ -50,6 +50,15 @@ namespace Honeycomb
 
             string wallpaperGroup = string.Empty;
             DA.GetData("Wallpaper Group", ref wallpaperGroup);
+
+            if (wallpaperGroup == "p2mm" ||
+                wallpaperGroup == "p4mm" ||
+                wallpaperGroup == "p3m1" ||
+                wallpaperGroup == "p6mm")
+            {
+
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "This wallpaper group contains only mirror symmetries, certain functionalities will not work properly.");
+            }
 
             double cellD1 = 10.0;
             double cellD2 = 10.0;

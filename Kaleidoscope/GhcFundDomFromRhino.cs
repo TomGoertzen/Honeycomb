@@ -15,7 +15,7 @@ namespace Honeycomb
         /// Initializes a new instance of the GhcFundDomFromRhino class.
         /// </summary>
         public GhcFundDomFromRhino()
-          : base("Make Fundamental Domain From Rhino",
+          : base("Get Fundamental Domain From Rhino",
                  "DIYFundDom",
                  "Use this component to generate a fundamental domain via rhino drive curves.",
                  "Honeycomb",

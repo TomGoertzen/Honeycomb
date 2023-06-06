@@ -69,7 +69,7 @@ namespace Honeycomb
         {
             get
             {
-                return Resources.PluginIcon;
+                return Resources.Honeycomb;
             }
         }
 

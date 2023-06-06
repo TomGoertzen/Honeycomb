@@ -53,6 +53,16 @@ namespace Honeycomb
             DA.GetDataTree(1, out GH_Structure<GH_Curve> inputCurves);
             DA.GetDataTree(2, out GH_Structure<GH_Transform> inputTransforms);
 
+            int numReq = inputTransforms.Branches.Count;
+            int numGiven = inPoints.Count;
+            AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "Warping this domain requires a minimum of " + numReq + " input points.");
+
+            if (numGiven < numReq)
+            {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Not enough input points.");
+                return;
+            }
+
             GH_Structure<GH_Curve> curves = new GH_Structure<GH_Curve>();
             for (int i = 0; i < inputCurves.Branches.Count; i++)
             {

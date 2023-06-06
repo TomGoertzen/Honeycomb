@@ -113,6 +113,16 @@ namespace Honeycomb.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Honeycomb {
+            get {
+                object obj = ResourceManager.GetObject("Honeycomb", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap MakeInterlockingBlock {
             get {
                 object obj = ResourceManager.GetObject("MakeInterlockingBlock", resourceCulture);
@@ -136,16 +146,6 @@ namespace Honeycomb.Properties {
         internal static System.Drawing.Bitmap PairDomainEdges {
             get {
                 object obj = ResourceManager.GetObject("PairDomainEdges", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
-        /// </summary>
-        internal static System.Drawing.Bitmap PluginIcon {
-            get {
-                object obj = ResourceManager.GetObject("PluginIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

@@ -133,6 +133,9 @@
   <data name="GetVoronoiDomain" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\GetVoronoiDomain.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="Honeycomb" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Honeycomb.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
   <data name="MakeInterlockingBlock" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\MakeInterlockingBlock.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
@@ -141,9 +144,6 @@
   </data>
   <data name="PairDomainEdges" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PairDomainEdges.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
-  </data>
-  <data name="PluginIcon" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PluginIcon.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="WarpDomain" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\WarpDomain.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>

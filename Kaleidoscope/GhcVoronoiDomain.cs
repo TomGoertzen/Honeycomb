@@ -17,7 +17,7 @@ namespace Honeycomb
         /// Initializes a new instance of the GhcVoronoiDomain class.
         /// </summary>
         public GhcVoronoiDomain()
-          : base("Voronoi Domain",
+          : base("Get Voronoi Domain",
                  "VorDom",
                  "Use this component to generate a voronoi fundamental domain.",
                  "Honeycomb",

@@ -32,6 +32,7 @@ namespace Honeycomb
             pManager.AddCurveParameter("Inital Set", "I", "Inital Set of paired curves.", GH_ParamAccess.tree);
             pManager.AddCurveParameter("Amended Set", "A", "Amended Set of paired curves.", GH_ParamAccess.tree);
             pManager.AddNumberParameter("Offset", "O", "Offset between intial and amended domains.", GH_ParamAccess.item, 1.0);
+            pManager.AddBooleanParameter("Cap", "C", "Enable or disable tops of geometry.", GH_ParamAccess.item, true);
         }
 
         /// <summary>
@@ -49,9 +50,11 @@ namespace Honeycomb
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             double offset = double.NaN;
+            Boolean capTops = true;
             DA.GetDataTree(0, out GH_Structure<GH_Curve> firstCurves);
             DA.GetDataTree(1, out GH_Structure<GH_Curve> secondCurves);
             DA.GetData(2, ref offset);
+            DA.GetData(3, ref capTops);
 
             Transform offsetTransform = Transform.Translation(new Vector3d(0, 0, offset));
             GH_Structure<GH_Curve> flattenedCurves1 = firstCurves.Duplicate();
@@ -70,7 +73,13 @@ namespace Honeycomb
             Brep cap2 = Brep.CreatePlanarBreps(boundary2, RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)[0];
             cap2.Transform(offsetTransform);
 
-            List<Brep> brepsToJoin = new List<Brep> { cap1, cap2 };
+            List<Brep> brepsToJoin = new List<Brep>();
+
+            if (capTops)
+            {
+                brepsToJoin.Add(cap1);
+                brepsToJoin.Add(cap2);
+            }
 
             foreach (Curve curve1 in curveList1)
             {
