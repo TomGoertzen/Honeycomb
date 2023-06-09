@@ -1,4 +1,5 @@
 # Honeycomb
+[Kaleidoscope was the working title]
 
 Honeycomb enables the creation of 2D and 3D patterns through symmetric transformations, each derived from the 17 wallpaper groups. You can choose any of the wallpaper groups to create tilings based on Voronoi Domains and your own deformations of existing tilings. Furthermore, you can create custom topological interlocking blocks.
 
