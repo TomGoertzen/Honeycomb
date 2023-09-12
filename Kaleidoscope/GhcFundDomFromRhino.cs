@@ -2,10 +2,8 @@
 using Grasshopper.Kernel.Data;
 using Grasshopper.Kernel.Types;
 using Honeycomb.Properties;
-using Rhino;
 using Rhino.Geometry;
 using System;
-using System.Collections.Generic;
 
 namespace Honeycomb
 {
@@ -51,75 +49,84 @@ namespace Honeycomb
             DA.GetDataTree(1, out GH_Structure<GH_Curve> inputCurvePairs);
             DA.GetDataTree(2, out GH_Structure<GH_Transform> inputTransforms);
 
-            inputCurvePairs.Flatten();
-
-            List<Point3d> gridPoints = new List<Point3d>();
-            foreach (GH_Curve curve in inputCurvePairs)
+            //PAIR RHINO CURVES
+            GH_Structure<GH_Curve> outputPairs = new GH_Structure<GH_Curve>();
+            int indexOfPair = -1;
+            foreach (GH_Curve curCurve in inputCurves)
             {
-                gridPoints.Add(curve.Value.PointAtStart);
-                gridPoints.Add(curve.Value.PointAtEnd);
-            }
-
-            GH_Structure<GH_Curve> outputCurves = new GH_Structure<GH_Curve>();
-            int treeIndex = 0;
-
-            foreach (GH_Curve ghCurve in inputCurves)
-            {
-                Curve curve = ghCurve.Value;
-                bool matchFound = false;
-                if (!IsValidCurve(gridPoints, curve))
+                GH_Curve matchedCurve = generate_rhino_curve_pair(curCurve, inputCurvePairs, inputTransforms, ref indexOfPair);
+                if (indexOfPair == -1)
                 {
-                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Input curves not coincident with grid points.");
+                    AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Input curves are not coincident with domain points.");
                     return;
                 }
-                foreach (GH_Transform t in inputTransforms)
+                outputPairs.Append(curCurve, new GH_Path(indexOfPair));
+                outputPairs.Append(matchedCurve, new GH_Path(indexOfPair));
+            }
+
+            //IN CASE OF NOT ALL PAIRS ARE ACCOUNTED FOR
+            for (int i = 0; i < inputCurvePairs.Branches.Count; i++)
+            {
+                if (!outputPairs.PathExists(new GH_Path(i)))
                 {
-                    Curve testCurve = curve.DuplicateCurve();
-                    testCurve.Transform(t.Value);
-                    if (IsValidCurve(gridPoints, testCurve))
+                    outputPairs.Append(inputCurvePairs.Branches[i][0], new GH_Path(i));
+                    outputPairs.Append(inputCurvePairs.Branches[i][1], new GH_Path(i));
+                }
+            }
+
+            DA.SetDataTree(0, outputPairs);
+        }
+
+        private GH_Curve generate_rhino_curve_pair(GH_Curve curCurve, GH_Structure<GH_Curve> inputCurvePairs,
+                                               GH_Structure<GH_Transform> inputTransforms, ref int indexOfPair)
+        {
+            for (int i = 0; i < inputCurvePairs.Branches.Count; i++)
+            {
+                for (int j = 0; j < inputCurvePairs.Branches[i].Count; j++)
+                {
+                    Curve testCurve = inputCurvePairs.Branches[i][j].Value;
+                    if (Utilities.endpoints_are_similar(curCurve.Value, testCurve))
                     {
-                        matchFound = true;
-                        outputCurves.Append(ghCurve, new GH_Path(treeIndex));
-                        outputCurves.Append(new GH_Curve(testCurve), new GH_Path(treeIndex));
-                        treeIndex++;
-                        break;
-                    }
-                    if (t.Value.TryGetInverse(out Transform tI))
-                    {
-                        Curve testCurveInverse = curve.DuplicateCurve();
-                        testCurveInverse.Transform(tI);
-                        if (IsValidCurve(gridPoints, testCurveInverse))
+                        Transform t = inputTransforms[i][0].Value;
+                        Curve transformedCurve = curCurve.Value.DuplicateCurve();
+                        transformedCurve.Transform(t);
+                        if (is_valid_transfromed_curve(transformedCurve, inputCurvePairs))
                         {
-                            matchFound = true;
-                            outputCurves.Append(ghCurve, new GH_Path(treeIndex));
-                            outputCurves.Append(new GH_Curve(testCurveInverse), new GH_Path(treeIndex));
-                            treeIndex++;
-                            break;
+                            indexOfPair = i;
+                            return new GH_Curve(transformedCurve);
+                        }
+                        else
+                        {
+                            t.TryGetInverse(out Transform tI);
+                            Curve transformedInverseCurve = curCurve.Value.DuplicateCurve();
+                            transformedInverseCurve.Transform(tI);
+                            if (is_valid_transfromed_curve(transformedInverseCurve, inputCurvePairs))
+                            {
+                                indexOfPair = i;
+                                return new GH_Curve(transformedInverseCurve);
+                            }
                         }
                     }
                 }
-                if (!matchFound) AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "Something went wrong.");
             }
-
-
-            DA.SetDataTree(0, outputCurves);
+            return null;
         }
 
-        protected bool IsValidCurve(List<Point3d> gridPoints, Curve curve)
+        private bool is_valid_transfromed_curve(Curve transformedCurve, GH_Structure<GH_Curve> inputCurvePairs)
         {
-            Point3d startPt = curve.PointAtStart;
-            Point3d endPt = curve.PointAtEnd;
-            bool endIsValid = false;
-            bool startIsValid = false;
-            foreach (Point3d point in gridPoints)
+            for (int i = 0; i < inputCurvePairs.Branches.Count; i++)
             {
-                if (startPt.DistanceTo(point) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance) startIsValid = true;
-                if (endPt.DistanceTo(point) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance) endIsValid = true;
+                for (int j = 0; j < inputCurvePairs.Branches[i].Count; j++)
+                {
+                    Curve testCurve = inputCurvePairs.Branches[i][j].Value;
+                    if (Utilities.endpoints_are_similar(transformedCurve, testCurve))
+                    {
+                        return true;
+                    }
+                }
             }
-            if (startIsValid && endIsValid) return true;
-            else return false;
+            return false;
         }
-
         /// <summary>
         /// Provides an Icon for the component.
         /// </summary>

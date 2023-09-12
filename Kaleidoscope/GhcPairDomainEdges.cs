@@ -59,8 +59,92 @@ namespace Honeycomb
             DA.GetData(2, ref baseCell);
             DA.GetData(3, ref fundamentalDomain);
 
-            List<double> shatterParams = new List<double>();
+            List<Line> segments = get_lines_of_domain(gridPoints, baseCell, fundamentalDomain,
+                                                      out Vector3d translateX, out Vector3d translateY);
 
+            //REPEAT CELL IN 3X3 IN ORDER TO MATCH CURVES; EXACTLY 1 WILL OVERLAY EACH OF THE BASE CELL
+            var baseCellTransforms = inTransforms.Branches[0];
+            var allTransforms = new List<Transform>();
+            for (int i = -1; i < 2; i++)
+            {
+                for (int j = -1; j < 2; j++)
+                {
+                    for (int k = 0; k < baseCellTransforms.Count; k++)
+                    {
+                        Transform t = baseCellTransforms[k].Value;
+                        Transform full_transform = Transform.Translation(translateX * i) *
+                                                   Transform.Translation(translateY * j) * t;
+                        allTransforms.Add(full_transform);
+                    }
+                }
+            }
+
+            GH_Structure<GH_Curve> curvePairs = new GH_Structure<GH_Curve>();
+            GH_Structure<GH_Transform> curvePairsTransforms = new GH_Structure<GH_Transform>();
+            int treeIndex = 0;
+            for (int i = 0; i < segments.Count; i++)
+            {
+                Curve curCurve = segments[i].ToNurbsCurve();
+                for (int j = i + 1; j < segments.Count; j++)
+                {
+                    Curve testCurve = segments[j].ToNurbsCurve();
+                    if (try_find_transform_between_curves(curCurve, testCurve, allTransforms, out Transform t))
+                    {
+                        curvePairs.Append(new GH_Curve(curCurve), new GH_Path(treeIndex));
+                        curvePairs.Append(new GH_Curve(testCurve), new GH_Path(treeIndex));
+                        curvePairsTransforms.Append(new GH_Transform(t), new GH_Path(treeIndex));
+                        treeIndex++;
+                    }
+                }
+            }
+
+            //What if a curve has no pair? Add it to its own branch!
+            List<GH_Curve> curvePairsFlat = curvePairs.ToList();
+            foreach (Line line in segments)
+            {
+                Curve curSeg = line.ToNurbsCurve();
+                bool foundPair = false;
+                for (int j = 0; j < curvePairsFlat.Count; j++)
+                {
+                    Curve testCurve = curvePairsFlat[j].Value;
+                    if (Utilities.endpoints_are_similar(curSeg, testCurve))
+                    {
+                        foundPair = true;
+                    }
+                }
+                if (!foundPair)
+                {
+                    curvePairs.Append(new GH_Curve(curSeg), new GH_Path(treeIndex));
+                    treeIndex++;
+                }
+            }
+
+            DA.SetDataTree(0, curvePairs);
+            DA.SetDataTree(1, curvePairsTransforms);
+        }
+
+        private Boolean try_find_transform_between_curves(Curve curCurve, Curve testCurve, List<Transform> tList, out Transform t)
+        {
+            foreach (Transform testT in tList)
+            {
+                Curve transfromedTestCurve = curCurve.DuplicateCurve();
+                transfromedTestCurve.Transform(testT);
+                if (Utilities.endpoints_are_similar(transfromedTestCurve, testCurve))
+                {
+                    t = testT;
+                    return true;
+                }
+            }
+            t = Transform.Unset;
+            return false;
+        }
+
+
+        private List<Line> get_lines_of_domain(List<Point3d> gridPoints, Curve baseCell, Curve fundamentalDomain,
+                                               out Vector3d translateX, out Vector3d translateY)
+        {
+            //GET SEGMENTS OF FUNDAMENTAL DOMAIN
+            List<double> shatterParams = new List<double>();
             foreach (Point3d point in gridPoints)
             {
                 if (fundamentalDomain.ClosestPoint(point, out double parameter, RhinoDoc.ActiveDoc.ModelAbsoluteTolerance))
@@ -68,7 +152,6 @@ namespace Honeycomb
                     shatterParams.Add(parameter);
                 }
             }
-
             Curve[] c = fundamentalDomain.DuplicateSegments();
             foreach (Curve curve in c)
             {
@@ -78,7 +161,6 @@ namespace Honeycomb
                     shatterParams.Add(parameter);
                 }
             }
-
             Polyline baseCellPoly = baseCell.ToPolyline(RhinoDoc.ActiveDoc.ModelAbsoluteTolerance,
                                                         RhinoDoc.ActiveDoc.ModelAbsoluteTolerance, int.MinValue, int.MaxValue).ToPolyline();
             Curve[] curveArray = baseCell.DuplicateSegments();
@@ -87,8 +169,8 @@ namespace Honeycomb
             {
                 endPointsBaseCell.Add(curve.PointAtStart);
             }
-            Vector3d translateX = new Vector3d(endPointsBaseCell[1] - endPointsBaseCell[0]);
-            Vector3d translateY = new Vector3d(endPointsBaseCell[2] - endPointsBaseCell[1]);
+            translateX = new Vector3d(endPointsBaseCell[1] - endPointsBaseCell[0]);
+            translateY = new Vector3d(endPointsBaseCell[2] - endPointsBaseCell[1]);
 
             List<double> sortedParams = shatterParams.OrderBy(d => d).ToList();
 
@@ -102,233 +184,10 @@ namespace Honeycomb
                 Line l = new Line(p1, p2);
                 if (l.Length > RhinoDoc.ActiveDoc.ModelAbsoluteTolerance) segments.Add(l);
             }
-
-            var transformsOneCell = inTransforms.Branches[0];
-
-            var transformedSegments = new GH_Structure<GH_Curve>();
-
-            int treeIndex = 0;
-            for (int i = 0; i < 3; i++)
-            {
-                for (int j = 0; j < 3; j++)
-                {
-                    for (int k = 0; k < transformsOneCell.Count; k++)
-                    {
-                        GH_Transform t = transformsOneCell[k];
-                        foreach (Line line in segments)
-                        {
-                            Curve curve = line.ToNurbsCurve().DuplicateCurve();
-                            curve.Transform(t.Value);
-                            curve.Transform(Transform.Translation(translateX * i));
-                            curve.Transform(Transform.Translation(translateY * j));
-                            transformedSegments.Append(new GH_Curve(curve), new GH_Path(treeIndex, k));
-                        }
-                    }
-                    treeIndex++;
-                }
-            }
-
-            var centerSegements = transformedSegments.get_Branch(new GH_Path(4, 0));
-            Dictionary<int, int> usedIndicies = new Dictionary<int, int>();
-            Dictionary<int, bool> hasMirror = new Dictionary<int, bool>();
-
-            for (int i = 0; i < centerSegements.Count; i++)
-            {
-                if (usedIndicies.ContainsKey(i)) continue;
-                Curve curCenterSegment = ((GH_Curve)centerSegements[i]).Value;
-                for (int j = 0; j < transformedSegments.Branches.Count; j++)
-                {
-                    for (int k = i + 1; k < transformedSegments.Branches[0].Count; k++)
-                    {
-                        if (usedIndicies.ContainsKey(k)) continue;
-                        Curve curTestSegment = transformedSegments[j][k].Value;
-                        if (curCenterSegment.PointAtStart.DistanceTo(curTestSegment.PointAtStart) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance &&
-                            curCenterSegment.PointAtEnd.DistanceTo(curTestSegment.PointAtEnd) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                        {
-                            usedIndicies[i] = k;
-                            usedIndicies[k] = int.MinValue;
-                            hasMirror[i] = true;
-                            hasMirror[k] = true;
-
-                        }
-                        else if (curCenterSegment.PointAtEnd.DistanceTo(curTestSegment.PointAtStart) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance &&
-                            curCenterSegment.PointAtStart.DistanceTo(curTestSegment.PointAtEnd) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                        {
-                            usedIndicies[i] = k;
-                            usedIndicies[k] = int.MinValue;
-                            hasMirror[i] = false;
-                            hasMirror[k] = false;
-                        }
-                    }
-                }
-            }
-
-
-            var pairedSegments = new GH_Structure<GH_Curve>();
-            var isMirrorList = new List<bool>();
-            treeIndex = 0;
-            foreach (int key in usedIndicies.Keys)
-            {
-                if (usedIndicies[key] == int.MinValue) continue;
-                pairedSegments.Append(new GH_Curve(segments[key].ToNurbsCurve()), new GH_Path(treeIndex));
-                pairedSegments.Append(new GH_Curve(segments[usedIndicies[key]].ToNurbsCurve()), new GH_Path(treeIndex));
-                isMirrorList.Add(hasMirror[key]);
-                treeIndex++;
-            }
-
-            var transformsBetweenPairs = new GH_Structure<GH_Transform>();
-            for (int i = 0; i < pairedSegments.Branches.Count; i++)
-            {
-                Point3d start1 = pairedSegments[i][0].Value.PointAtStart;
-                Point3d end1 = pairedSegments[i][0].Value.PointAtEnd;
-                Point3d start2 = pairedSegments[i][1].Value.PointAtStart;
-                Point3d end2 = pairedSegments[i][1].Value.PointAtEnd;
-
-                bool isMirror = isMirrorList[i];
-
-                //ROTATIONS
-                //if (start1.DistanceTo(start2) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                //{
-                //    Vector3d vec1 = new Vector3d(end1 - start1);
-                //    Vector3d vec2 = new Vector3d(end2 - start2);
-                //    double angle = Vector3d.VectorAngle(vec1, vec2);
-                //    Transform t = new Transform(Transform.Rotation(angle, Vector3d.ZAxis, start1));
-
-                //    end1.Transform(t);
-                //    if (end1.DistanceTo(end2) > RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                //    {
-                //        t = new Transform(Transform.Rotation(-angle, Vector3d.ZAxis, start1));
-                //        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-
-                //    }
-                //    else
-                //    {
-                //        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-                //    }
-                //}
-                if (end1.DistanceTo(start2) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                {
-                    Vector3d vec1 = new Vector3d(start1 - end1);
-                    Vector3d vec2 = new Vector3d(end2 - start2);
-                    double angle = Vector3d.VectorAngle(vec1, vec2);
-                    Transform t = new Transform(Transform.Rotation(angle, Vector3d.ZAxis, end1));
-
-                    start1.Transform(t);
-                    if (start1.DistanceTo(end2) > RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                    {
-                        t = new Transform(Transform.Rotation(-angle, Vector3d.ZAxis, end1));
-                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-
-                    }
-                    else
-                    {
-                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-                    }
-                }
-                //else if (end1.DistanceTo(end2) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                //{
-                //    Vector3d vec1 = new Vector3d(start1 - end1);
-                //    Vector3d vec2 = new Vector3d(start2 - end2);
-                //    double angle = Vector3d.VectorAngle(vec1, vec2);
-                //    Transform t = new Transform(Transform.Rotation(angle, Vector3d.ZAxis, end1));
-
-                //    start1.Transform(t);
-                //    if (start1.DistanceTo(start2) > RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                //    {
-                //        t = new Transform(Transform.Rotation(-angle, Vector3d.ZAxis, end1));
-                //        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-
-                //    }
-                //    else
-                //    {
-                //        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-                //    }
-                //}
-                else if (start1.DistanceTo(end2) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                {
-                    Vector3d vec1 = new Vector3d(end1 - start1);
-                    Vector3d vec2 = new Vector3d(start2 - end2);
-                    double angle = Vector3d.VectorAngle(vec1, vec2);
-                    Transform t = new Transform(Transform.Rotation(angle, Vector3d.ZAxis, start1));
-
-                    end1.Transform(t);
-                    if (start2.DistanceTo(end1) > RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                    {
-                        t = new Transform(Transform.Rotation(-angle, Vector3d.ZAxis, start1));
-                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-
-                    }
-                    else
-                    {
-                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-                    }
-                }
-
-                //TRANSLATIONS
-                else if (Math.Abs(end1.DistanceTo(start2) - start1.DistanceTo(end2)) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance &&
-                         new Line(end1, start2).Direction.EpsilonEquals(new Line(start1, end2).Direction, RhinoDoc.ActiveDoc.ModelAbsoluteTolerance))
-                {
-                    Vector3d vec = new Line(start1, end2).Direction;
-                    if (isMirror)
-                    {
-                        Point3d mid = (start1 + start2) / 2;
-                        Plane mirrorPlane = new Plane(mid, new Line(start1, end1).Direction);
-                        Transform t = new Transform(Transform.Translation(vec) * Transform.Mirror(mirrorPlane));
-                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-                    }
-                    else
-                    {
-                        Transform t = new Transform(Transform.Translation(vec));
-                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-                    }
-                }
-                //else if (Math.Abs(start1.DistanceTo(start2) - end1.DistanceTo(end2)) < RhinoDoc.ActiveDoc.ModelAbsoluteTolerance &&
-                //         new Line(start1, start2).Direction.EpsilonEquals(new Line(end1, end2).Direction, RhinoDoc.ActiveDoc.ModelAbsoluteTolerance))
-                //{
-                //    Vector3d vec = new Line(start1, start2).Direction;
-                //    Transform t = Transform.Translation(vec);
-                //    transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-                //}
-
-                //MIRROR TRANSLATIONS AND MORE LOL
-                else
-                {
-                    Vector3d vec = new Line(start1, start2).Direction;
-                    Vector3d line1 = new Line(start1, end1).Direction;
-                    Vector3d line2 = new Line(start2, end2).Direction;
-                    double angle = Vector3d.VectorAngle(line1, line2);
-
-                    Transform translate = new Transform(Transform.Translation(vec));
-                    Transform mirror = new Transform(Transform.Mirror(new Plane(start1, end1, (start1 + new Vector3d(0.0, 0.0, 1.0)))));
-
-                    Transform rotate = new Transform(Transform.Rotation(angle, Vector3d.ZAxis, start1));
-                    Transform t = translate * rotate * mirror;
-                    end1.Transform(t);
-
-                    if (end2.DistanceTo(end1) > RhinoDoc.ActiveDoc.ModelAbsoluteTolerance)
-                    {
-                        rotate = new Transform(Transform.Rotation(-angle, Vector3d.ZAxis, start1));
-                        t = translate * rotate * mirror;
-                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-
-                    }
-                    else
-                    {
-                        transformsBetweenPairs.Append(new GH_Transform(t), new GH_Path(i));
-                    }
-                }
-            }
-
-            for (int i = 0; i < segments.Count; i++)
-            {
-                if (usedIndicies.ContainsKey(i)) continue;
-                pairedSegments.Append(new GH_Curve(segments[i].ToNurbsCurve()), new GH_Path(treeIndex));
-            };
-
-
-            DA.SetDataTree(0, pairedSegments);
-            DA.SetDataTree(1, transformsBetweenPairs);
+            return segments;
         }
+
+
 
         /// <summary>
         /// Provides an Icon for the component.
