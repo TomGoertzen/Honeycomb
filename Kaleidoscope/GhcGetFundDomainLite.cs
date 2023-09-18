@@ -14,8 +14,8 @@ namespace Honeycomb
         /// Initializes a new instance of the GhcGetFundDomainLite class.
         /// </summary>
         public GhcGetFundDomainLite()
-          : base("Get Fundamental Domain (Lite)",
-                 "FundDLt",
+          : base("Get Wallpaper Group (Lite)",
+                 "GetWPGLt",
                  "Use this component to easily generate transformation data and a geometrical boundary for your tilings.",
                  "Honeycomb",
                  "Tiling")
@@ -36,7 +36,7 @@ namespace Honeycomb
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddTransformParameter("Transform Data", "T", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
-            pManager.AddPointParameter("Grid Points", "G", "Geometry representing the cells of the grid", GH_ParamAccess.list);
+            pManager.AddPointParameter("Fixed Points", "P", "Points that are guaranteed to lie on a fundamental domain edge.", GH_ParamAccess.list);
             pManager.AddCurveParameter("Base Cell", "C", "Geometry representing the cell boundary", GH_ParamAccess.item);
             pManager.AddCurveParameter("Fundamental Domain", "D", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }

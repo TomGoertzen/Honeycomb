@@ -14,8 +14,8 @@ namespace Honeycomb
     {
         /// Initializes a new instance of the GhcMakeGrid class.
         public GhcGetFundDomain()
-          : base("Get Fundamental Domain",
-                 "FundD",
+          : base("Get Wallpaper Group",
+                 "GetWPG",
                  "Use this component to generate transformation data and a geometrical boundary for your tilings.",
                  "Honeycomb",
                  "Tiling")
@@ -41,7 +41,7 @@ namespace Honeycomb
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddTransformParameter("Transform Data", "T", "Tree containing transform data to be applied to a geometry", GH_ParamAccess.tree);
-            pManager.AddPointParameter("Grid Points", "G", "Geometry representing the cells of the grid", GH_ParamAccess.list);
+            pManager.AddPointParameter("Fixed Points", "P", "Points that are guaranteed to lie on a fundamental domain edge.", GH_ParamAccess.list);
             pManager.AddCurveParameter("Base Cell", "C", "Geometry representing the cell boundary", GH_ParamAccess.item);
             pManager.AddCurveParameter("Fundamental Domain", "D", "Geometry representing the suggested fundamental domain boundary", GH_ParamAccess.item);
         }

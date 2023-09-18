@@ -30,7 +30,7 @@ namespace Honeycomb
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddTransformParameter("Transform Data", "T", "Transforms between each curve pair.", GH_ParamAccess.tree);
-            pManager.AddPointParameter("Grid Points", "G", "Grid points to divide domain.", GH_ParamAccess.list);
+            pManager.AddPointParameter("Fixed Points", "P", "Points that are guaranteed to lie on a fundamental domain edge.", GH_ParamAccess.list);
             pManager.AddCurveParameter("Base Cell", "C", "Base Cell of the wallpaper group", GH_ParamAccess.item);
             pManager.AddCurveParameter("Fundamental Domain", "D", "Polyline to divide by grid.", GH_ParamAccess.item);
         }
